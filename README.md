@@ -1,4 +1,4 @@
-Grapy, a fast high-level screen scraping and web crawling framework for Python 3.3 or later base on asyncio.
+Grapy, a fast high-level web crawling framework for Python 3.3 or later base on asyncio.
 
 Tutorial
 ========
