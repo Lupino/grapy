@@ -21,7 +21,7 @@ Indices and tables
 * :ref:`search`
 
 ===============
-Crawl Tutorial
+Grapy Tutorial
 ===============
 
 In this tutorial, we'll assume that Crawl is already installed on your system.
@@ -282,16 +282,14 @@ The installation steps assume that you have the following things installed:
 * `asyncio`_ Python 3 async library
 * `aiohttp`_ http client/server for asyncio
 * `BeautifulSoup`_ Beautiful Soup: We called him Tortoise because he taught us
-* `aiogear`_ Gearman client/worker for asyncio
 * `pip`_ or `easy_install`_ Python package managers
-* `Gearman`_ Gearman Job Server
 
-Installing Crawl
+Installing Grapy
 =================
 
 To install using source::
 
-    git clone ssh://gitlab@gitlab.widget-inc.com:65422/pinbot-grapy/grapy.git
+    git clone https://github.com/Lupino/grapy.git
     cd grapy
     python3 setup.py install
 
@@ -299,8 +297,6 @@ To install using source::
 .. _asyncio: https://code.google.com/p/tulip/
 .. _aiohttp: https://github.com/fafhrd91/aiohttp
 .. _BeautifulSoup: http://www.crummy.com/software/BeautifulSoup/
-.. _Gearman: http://gearman.org/
-.. _aiogear: https://github.com/Lupino/aiogear
 .. _pip: http://www.pip-installer.org/en/latest/installing.html
 .. _easy_install: http://pypi.python.org/pypi/setuptools
 

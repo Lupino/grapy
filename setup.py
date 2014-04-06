@@ -13,10 +13,10 @@ requires = ['asyncio', 'aiohttp', 'beautifulsoup4']
 setup(
     name='grapy',
     version='0.1.5',
-    description='a scrapy like model',
+    description='Grapy, a fast high-level screen scraping and web crawling framework for Python 3.3 or later base on asyncio.',
     author='Li Meng Jun',
     author_email='lmjubuntu@gmail.com',
-    url='http://lupino.me',
+    url='https://github.com/Lupino/grapy',
     packages=packages,
     package_dir={'grapy': 'grapy'},
     include_package_data=True,
