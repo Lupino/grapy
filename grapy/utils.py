@@ -1,8 +1,10 @@
 from importlib import import_module as _import_module
-from .logging import logger
+import logging
 
 __all__ = ['import_module', 'import_pipelines', 'import_middlewares',
-           'import_spiders']
+           'import_spiders', "logger"]
+
+logger = logging.getLogger('grapy')
 
 def import_module(module_name, *args, **kwargs):
     '''

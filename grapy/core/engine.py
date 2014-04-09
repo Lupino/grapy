@@ -2,7 +2,7 @@ import asyncio
 from .request import Request
 import inspect
 from .item import Item
-from ..logging import logger
+from ..utils import logger
 from .exceptions import EngineError
 
 __all__ = ['Engine']

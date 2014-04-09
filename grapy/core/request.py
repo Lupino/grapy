@@ -2,7 +2,7 @@ import json
 import re
 import asyncio
 import aiohttp
-from ..logging import logger
+from ..utils import logger
 from urllib.parse import urljoin
 from .response import Response
 from .exceptions import IgnoreRequest, RetryRequest
