@@ -142,9 +142,10 @@ class Engine(object):
         yield from self.start_request()
         self.sched.start()
 
-    def start(self):
+    def start(self, forever = True):
         asyncio.Task(self.run())
-        self.loop.run_forever()
+        if forever:
+            self.loop.run_forever()
 
     def shutdown(self):
         self.loop.close()
