@@ -10,19 +10,19 @@ def hash_url(url):
     return h.hexdigest()
 
 class Scheduler(BaseScheduler):
-    def __init__(self, stroage = {}, queue=[], max_tasks=5):
+    def __init__(self, storage = {}, queue=[], max_tasks=5):
         BaseScheduler.__init__(self)
-        self._stroage = stroage
+        self._storage = storage
         self._queue = queue
         self._sem = asyncio.Semaphore(max_tasks)
 
     def push_req(self, req):
         key = hash_url(req.url)
-        if key in self._stroage:
+        if key in self._storage:
             return
 
         self._queue.insert(0, req)
-        self._stroage[key] = {'key': key, 'req': req, 'crawled': False}
+        self._storage[key] = {'key': key, 'req': req, 'crawled': False}
 
         self.start()
 
@@ -41,4 +41,4 @@ class Scheduler(BaseScheduler):
     def submit_req(self, req):
         yield from BaseScheduler.submit_req(self, req)
         key = hash_url(req.url)
-        self._stroage[key] = {'key': key, 'req': req, 'crawled': True}
+        self._storage[key] = {'key': key, 'req': req, 'crawled': True}
