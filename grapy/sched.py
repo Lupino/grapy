@@ -18,7 +18,7 @@ class Scheduler(BaseScheduler):
 
     def push_req(self, req):
         key = hash_url(req.url)
-        if key in self._storage:
+        if req.unique and key in self._storage:
             return
 
         self._queue.insert(0, req)
