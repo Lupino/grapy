@@ -5,7 +5,8 @@ __all__ = ['BaseSpider']
 class BaseSpider(object):
     '''The BaseSpider, all the spider recommend to extends this'''
 
-    __slots__ = ['name', 'start_urls']
+    name = None
+    start_urls = []
 
     def __init__(self, name=None, start_urls=[]):
         '''
@@ -13,8 +14,10 @@ class BaseSpider(object):
 
         @start_urls: the start request url
         '''
-        self.name = name
-        self.start_urls = start_urls
+        if not self.name:
+            self.name = name
+        if not self.start_urls:
+            self.start_urls = start_urls
 
     def start_request(self):
         '''you can rewrite it for custem start request'''
