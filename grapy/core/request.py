@@ -27,7 +27,7 @@ class Request(object):
 
     def __init__(self, url, method='get',
             callback='parse', callback_args = [], **kwargs):
-        self.url = url
+        self.url = re.sub('#.+', '', url)
         self.method = method
         self.callback = callback
         self.callback_args = callback_args
