@@ -1,6 +1,8 @@
 from .core import BaseScheduler
 import hashlib
 import asyncio
+import re
+re_url = re.compile('^https?://[^/]+')
 
 __all__ = ['Scheduler']
 
@@ -17,6 +19,8 @@ class Scheduler(BaseScheduler):
         self._sem = asyncio.Semaphore(max_tasks)
 
     def push_req(self, req):
+        if not re_url.match(req.url):
+            return
         key = hash_url(req.url)
         if req.unique and key in self._storage:
             return
