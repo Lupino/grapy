@@ -109,7 +109,7 @@ class Engine(object):
                         format(item.url, rsp.url, spider.name))
 
                 item.group = rsp.req.group
-                item.ref = rsp.req.req_id
+                item.ref = rsp.url
 
                 yield from self.push_req(item)
             elif isinstance(item, Item):
