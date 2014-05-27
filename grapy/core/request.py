@@ -6,6 +6,7 @@ from ..utils import logger
 from urllib.parse import urljoin
 from .response import Response
 from .exceptions import IgnoreRequest, RetryRequest
+import requests
 
 __all__ = ['Request']
 
@@ -119,4 +120,14 @@ class Request(object):
 
         except (aiohttp.IncompleteRead, aiohttp.BadStatusLine) as exc:
             logger.error(str(exc) + ': ' + url)
-            raise RetryRequest(exc)
+            rsp = requests.get(url, **kwargs)
+            if rsp.status_code >= 400 and rsp.status_code < 500:
+                raise IgnoreRequest(url)
+            if rsp.status_code == 200:
+                if re.search('html|json|text|xml|rss', ct, re.I):
+                    return Response(urljoin(url, rsp.url), rsp.content, rsp)
+                else:
+                    raise IgnoreRequest(url)
+            else:
+                logger.error('Request fail: {} {}'.format(url, rsp.status_code))
+                raise RetryRequest(url)
