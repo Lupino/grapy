@@ -8,7 +8,7 @@ packages = [
     'grapy.core',
 ]
 
-requires = ['asyncio', 'aiohttp', 'beautifulsoup4']
+requires = ['asyncio', 'aiohttp', 'beautifulsoup4', 'requests']
 
 setup(
     name='grapy',
