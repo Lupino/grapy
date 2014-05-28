@@ -9,7 +9,7 @@ __all__ = ['Engine']
 
 class Engine(object):
 
-    __slots__ = ['pipelines', 'spiders', 'middlewares', 'sched', 'loop']
+    __slots__ = ['pipelines', 'spiders', 'middlewares', 'sched', 'loop', 'timeout', 'headers']
 
     def __init__(self, loop=None):
         self.pipelines = []
@@ -19,6 +19,11 @@ class Engine(object):
         self.loop = loop
         if not self.loop:
             self.loop = asyncio.get_event_loop()
+
+        self.timeout = None
+        self.headers = {
+            'User-Agent': 'Grapy/1.0'
+        }
 
     def set_spiders(self, spiders):
         self.spiders = {}
@@ -60,6 +65,7 @@ class Engine(object):
 
     @asyncio.coroutine
     def process(self, req):
+        req.engine = self
         req = yield from self.process_middleware('before_process_request', req)
 
         rsp = yield from req.request()

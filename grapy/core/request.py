@@ -24,7 +24,7 @@ class Request(object):
     _null_char = '\x01'
 
     __slots__ = ['url', 'method', 'callback', 'callback_args', 'kwargs',
-                 'spider', 'unique', 'req_id', 'ref', 'group']
+                 'spider', 'unique', 'req_id', 'ref', 'group', 'engine']
 
     def __init__(self, url, method='get',
             callback='parse', callback_args = [], **kwargs):
@@ -38,6 +38,7 @@ class Request(object):
         self.req_id = 0
         self.ref = 0
         self.group = 0
+        self.engine = None
 
     def pack(self):
         '''
@@ -94,10 +95,16 @@ class Request(object):
         >>> rsp = yield from req.request()
         '''
         method = self.method.lower()
+        headers = self.engine.headers.copy()
+
+        headers.update(self.kwargs.get('headers', {}))
+
         kwargs = {
-            'timeout': 300
+            'timeout': self.engine.timeout or 300
         }
         kwargs.update(self.kwargs.copy())
+        kwargs['headers'] = headers
+
         url = self.url
 
         try:
