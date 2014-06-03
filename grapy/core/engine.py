@@ -111,7 +111,7 @@ class Engine(object):
         for item in items:
             if isinstance(item, Request):
                 item.spider = spider.name
-                logger.info('Find url[{}] on requset[{}] by spider[{}]'.\
+                logger.debug('Find url[{}] on requset[{}] by spider[{}]'.\
                         format(item.url, rsp.url, spider.name))
 
                 item.group = rsp.req.group
