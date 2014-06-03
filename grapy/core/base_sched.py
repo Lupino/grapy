@@ -29,6 +29,7 @@ class BaseScheduler(object):
 
         except Exception as e:
             logger.exception(e)
+            raise e
 
     def submit_item(self, item):
         try:
@@ -37,6 +38,7 @@ class BaseScheduler(object):
             pass
         except Exception as e:
             logger.exception(e)
+            raise e
 
     @asyncio.coroutine
     def run(self):
