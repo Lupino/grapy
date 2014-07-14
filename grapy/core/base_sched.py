@@ -1,6 +1,5 @@
 import asyncio
-from .exceptions import RetryRequest, IgnoreRequest, DropItem, ItemError
-from ..utils import logger
+from .exceptions import IgnoreRequest, DropItem, ItemError
 
 __all__ = ["BaseScheduler"]
 
@@ -21,24 +20,16 @@ class BaseScheduler(object):
     def submit_req(self, req):
         try:
             yield from self.engine.process(req)
-        except RetryRequest:
-            self.push_req(req)
 
         except IgnoreRequest:
             pass
 
-        except Exception as e:
-            logger.exception(e)
-            raise e
 
     def submit_item(self, item):
         try:
             yield from self.engine.process_item(item)
         except (DropItem, ItemError):
             pass
-        except Exception as e:
-            logger.exception(e)
-            raise e
 
     @asyncio.coroutine
     def run(self):

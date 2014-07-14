@@ -43,6 +43,15 @@ class Scheduler(BaseScheduler):
         self.is_running = False
 
     def submit_req(self, req):
-        yield from BaseScheduler.submit_req(self, req)
+        try:
+            yield from BaseScheduler.submit_req(self, req)
+        except:
+            pass
         key = hash_url(req.url)
         self._storage[key] = {'key': key, 'req': req, 'crawled': True}
+
+    def submit_item(self, item):
+        try:
+            yield from BaseScheduler.submit_item(self, item)
+        except:
+            pass
