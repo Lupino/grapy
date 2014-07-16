@@ -100,7 +100,7 @@ class Request(object):
         headers.update(self.kwargs.get('headers', {}))
 
         kwargs = {
-            'timeout': self.engine.timeout or 300
+            'connector': aiohttp.TCPConnector(loop=self.engine.loop, conn_timeout=300)
         }
         kwargs.update(self.kwargs.copy())
         kwargs['headers'] = headers
@@ -109,7 +109,7 @@ class Request(object):
 
         try:
             rsp = yield from aiohttp.request(method, url, **kwargs)
-            ct = rsp.get('content-type', '')
+            ct = rsp.headers.get('content-type', '')
             logger.info('Request: {} {} {} {}'.format(method.upper(), url, rsp.status, ct))
             yield from asyncio.sleep(5)
             if rsp.status >= 400 and rsp.status < 500:

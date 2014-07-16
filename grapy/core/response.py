@@ -9,7 +9,7 @@ __all__ = ['Response']
 
 class Response(object):
 
-    __slots__ = ['url', 'raw', 'encoding', 'content', '_soup', 'req']
+    __slots__ = ['url', 'raw', 'encoding', 'content', '_soup', 'req', 'headers']
 
     def __init__(self, url, content, raw):
         self.raw = raw
@@ -18,6 +18,7 @@ class Response(object):
         self.encoding = None
         self.content = content
         self.req = None
+        self.headers = raw.headers
 
     @property
     def text(self):
@@ -40,16 +41,10 @@ class Response(object):
 
     def json(self):
         '''return json document, maybe raise'''
-        # ct = self.raw.get('content-type', '').lower()
-        # if ct == 'application/json':
         data = self.content
         data = json.loads(data.decode('utf-8'))
         return data
 
-    @property
-    def headers(self):
-        'return the request headers'
-        return self.raw.items()
 
     @property
     def soup(self):
@@ -70,7 +65,7 @@ class Response(object):
 
         ct = ''
         try:
-            ct = self.raw.get('content-type', '').lower()
+            ct = self.headers.get('content-type', '').lower()
         except:
             pass
         p = re.search('charset=(.+)$', ct)
