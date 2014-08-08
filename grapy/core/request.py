@@ -140,9 +140,9 @@ class Request(object):
                 logger.error('Request fail: {} {}'.format(url, rsp.status_code))
                 raise RetryRequest(url)
         except aiohttp.errors.OsConnectionError as e:
-            logger.error("Request fail: {} {}".format(url, e))
+            logger.error("Request fail OsConnectionError: {} {}".format(url, e))
             raise IgnoreRequest(url)
 
         except ValueError as e:
-            logger.error("Request fail: {} {}".format(url, e))
+            logger.error("Request fail ValueError: {} {}".format(url, e))
             raise IgnoreRequest(url)
