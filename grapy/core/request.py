@@ -141,3 +141,4 @@ class Request(object):
                 raise RetryRequest(url)
         except aiohttp.errors.OsConnectionError as e:
             logger.error("Request fail: {} {}".format(url, e))
+            raise IgnoreRequest(url)
