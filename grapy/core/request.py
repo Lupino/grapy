@@ -142,3 +142,7 @@ class Request(object):
         except aiohttp.errors.OsConnectionError as e:
             logger.error("Request fail: {} {}".format(url, e))
             raise IgnoreRequest(url)
+
+        except ValueError as e:
+            logger.error("Request fail: {} {}".format(url, e))
+            raise IgnoreRequest(url)
