@@ -7,6 +7,7 @@ from urllib.parse import urljoin
 from .response import Response
 from .exceptions import IgnoreRequest, RetryRequest
 import requests
+from time import time
 
 __all__ = ['Request']
 
@@ -24,7 +25,8 @@ class Request(object):
     _null_char = '\x01'
 
     __slots__ = ['url', 'method', 'callback', 'callback_args', 'kwargs',
-                 'spider', 'unique', 'req_id', 'ref', 'group', 'engine']
+                 'spider', 'unique', 'req_id', 'ref', 'group', 'engine',
+                 'request_time']
 
     def __init__(self, url, method='get',
             callback='parse', callback_args = [], **kwargs):
@@ -39,6 +41,7 @@ class Request(object):
         self.ref = 0
         self.group = 0
         self.engine = None
+        self.request_time = 0
 
     def pack(self):
         '''
@@ -107,6 +110,8 @@ class Request(object):
 
         url = self.url
 
+        start_time = time()
+
         try:
             rsp = yield from aiohttp.request(method, url, **kwargs)
             ct = rsp.headers.get('content-type', '')
@@ -118,6 +123,7 @@ class Request(object):
                 if re.search('html|json|text|xml|rss', ct, re.I):
                     content = yield from rsp.read()
                     rsp.close()
+                    self.request_time = time() - start_time
                     return Response(urljoin(url, rsp.url), content, rsp)
                 else:
                     raise IgnoreRequest(url)
@@ -133,6 +139,7 @@ class Request(object):
                 raise IgnoreRequest(url)
             if rsp.status_code == 200:
                 if re.search('html|json|text|xml|rss', ct, re.I):
+                    self.request_time = time() - start_time
                     return Response(urljoin(url, rsp.url), rsp.content, rsp)
                 else:
                     raise IgnoreRequest(url)
