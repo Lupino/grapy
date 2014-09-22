@@ -8,6 +8,10 @@ See [docs](docs/index.rst)
 Installing Grapy
 =================
 
+To install from pypi::
+
+    pip3 install grapy
+
 To install using source::
 
     git clone https://github.com/Lupino/grapy.git
