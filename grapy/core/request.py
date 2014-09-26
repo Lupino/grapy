@@ -133,6 +133,9 @@ class Request(object):
 
         except (aiohttp.IncompleteRead, aiohttp.BadStatusLine) as exc:
             logger.error(str(exc) + ': ' + url)
+            kwargs = {}
+            kwargs.update(self.kwargs.copy())
+            kwargs['headers'] = headers
             rsp = requests.get(url, **kwargs)
             ct = rsp.headers['content-type']
             if rsp.status_code >= 400 and rsp.status_code < 500:
