@@ -136,7 +136,8 @@ class Request(object):
             kwargs = {}
             kwargs.update(self.kwargs.copy())
             kwargs['headers'] = headers
-            rsp = requests.get(url, **kwargs)
+            func = getattr(requests, method)
+            rsp = func(url, **kwargs)
             ct = rsp.headers['content-type']
             if rsp.status_code >= 400 and rsp.status_code < 500:
                 raise IgnoreRequest(url)
