@@ -24,7 +24,7 @@ Indices and tables
 Grapy Tutorial
 ===============
 
-In this tutorial, we'll assume that Crawl is already installed on your system.
+In this tutorial, we'll assume that Grapy is already installed on your system.
 If that's not the case, see :ref:`intro-install`.
 
 We are going to use `Open directory project (dmoz) <http://www.dmoz.org/>`_ as
@@ -103,7 +103,7 @@ items.py, found in the ``tutorial`` directory. Our Item class looks like this::
         ]
 
 This may seem complicated at first, but defining the item allows you to use other handy
-components of Crawl that need to know how your item looks like.
+components of Grapy that need to know how your item looks like.
 
 Our first Spider
 ================
@@ -121,7 +121,7 @@ define the three main, mandatory, attributes:
   unique, that is, you can't set the same name for different Spiders.
 
 * :attr:`~grapy.core.BaseSpider.start_urls`: is a list of URLs where the
-  Spider will begin to grapy from.  So, the first pages downloaded will be those
+  Spider will begin to crawl from.  So, the first pages downloaded will be those
   listed here. The subsequent URLs will be generated successively from data
   contained in the start URLs.
 
@@ -131,7 +131,7 @@ define the three main, mandatory, attributes:
   argument.
 
   This method is responsible for parsing the response data and extracting
-  grapyed data (as grapyed items) and more URLs to follow.
+  crawled data (as grapyed items) and more URLs to follow.
 
   The :meth:`~grapy.core.BaseSpider.parse` method is in charge of processing
   the response and returning crawled data (as :class:`~grapy.core.Item`
@@ -179,7 +179,7 @@ created: *Books* and *Resources*, with the content of both URLs.
 What just happened under the hood?
 ==================================
 
-Crawl creates :class:`grapy.core.Request` objects for each URL in the
+Grapy creates :class:`grapy.core.Request` objects for each URL in the
 ``start_urls`` attribute of the Spider, and assigns them the ``parse`` method of
 the spider as their callback function.
 
@@ -317,4 +317,3 @@ Item
 ==================
 Pipeline
 ==================
-
