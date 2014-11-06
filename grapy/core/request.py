@@ -103,7 +103,7 @@ class Request(object):
 
         headers.update(self.kwargs.get('headers', {}))
 
-        connector = kwargs.pop('connector', None)
+        connector = self.kwargs.pop('connector', None)
 
         if not connector:
             if self.http_proxy:
