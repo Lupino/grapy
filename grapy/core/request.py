@@ -26,7 +26,7 @@ class Request(object):
 
     __slots__ = ['url', 'method', 'callback', 'callback_args', 'kwargs',
                  'spider', 'unique', 'req_id', 'ref', 'group', 'engine',
-                 'request_time']
+                 'request_time', 'http_proxy']
 
     def __init__(self, url, method='get',
             callback='parse', callback_args = [], **kwargs):
@@ -42,6 +42,7 @@ class Request(object):
         self.group = 0
         self.engine = None
         self.request_time = 0
+        self.http_proxy = None
 
     def pack(self):
         '''
@@ -102,8 +103,18 @@ class Request(object):
 
         headers.update(self.kwargs.get('headers', {}))
 
+        connector = kwargs.pop('connector', None)
+
+        if not connector:
+            if self.http_proxy:
+                connector = aiohttp.ProxyConnector(proxy=self.http_proxy,
+                                                   conn_timeout=60)
+            else:
+                connector = aiohttp.TCPConnector(loop=self.engine.loop,
+                                                 conn_timeout=300)
+
         kwargs = {
-            'connector': aiohttp.TCPConnector(loop=self.engine.loop, conn_timeout=300)
+            'connector': connector
         }
         kwargs.update(self.kwargs.copy())
         kwargs['headers'] = headers
@@ -115,7 +126,8 @@ class Request(object):
         try:
             rsp = yield from aiohttp.request(method, url, **kwargs)
             ct = rsp.headers.get('content-type', '')
-            logger.info('Request: {} {} {} {}'.format(method.upper(), url, rsp.status, ct))
+            logger.info('Request: {} {} {} {}'.format(method.upper(),
+                                                      url, rsp.status, ct))
             yield from asyncio.sleep(5)
             if rsp.status >= 400 and rsp.status < 500:
                 raise IgnoreRequest(url)
@@ -136,6 +148,10 @@ class Request(object):
             kwargs = {}
             kwargs.update(self.kwargs.copy())
             kwargs['headers'] = headers
+            if self.http_proxy:
+                kwargs['proxies'] = {
+                    'http': self.http_proxy,
+                }
             func = getattr(requests, method)
             rsp = func(url, **kwargs)
             ct = rsp.headers['content-type']
