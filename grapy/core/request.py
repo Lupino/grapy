@@ -90,14 +90,7 @@ class Request(object):
                     setattr(req, key, val)
         return req
 
-    @asyncio.coroutine
-    def request(self):
-        '''
-        do request default timeout is 300s
-
-        >>> req = Request('http://example.com')
-        >>> rsp = yield from req.request()
-        '''
+    def _aio_request(self):
         method = self.method.lower()
         headers = self.engine.headers.copy()
 
@@ -123,53 +116,68 @@ class Request(object):
 
         start_time = time()
 
+        rsp = yield from aiohttp.request(method, url, **kwargs)
+        ct = rsp.headers.get('content-type', '')
+        logger.info('Request: {} {} {} {}'.format(method.upper(),
+                                                  url, rsp.status, ct))
+        yield from asyncio.sleep(5)
+        if rsp.status >= 400 and rsp.status < 500:
+            raise IgnoreRequest(url)
+        if rsp.status == 200:
+            if re.search('html|json|text|xml|rss', ct, re.I):
+                content = yield from rsp.read()
+                rsp.close()
+                self.request_time = time() - start_time
+                return Response(urljoin(url, rsp.url), content, rsp)
+            else:
+                raise IgnoreRequest(url)
+        else:
+            logger.error('Request fail: {} {}'.format(url, rsp.status))
+            raise RetryRequest(url)
+
+    def _request(self):
+        url = self.url
+        method = self.method.lower()
+        headers = self.engine.headers.copy()
+        headers.update(self.kwargs.get('headers', {}))
+        kwargs = self.kwargs.copy()
+        kwargs.pop('connector', None)
+        kwargs['headers'] = headers
+        if self.http_proxy:
+            kwargs['proxies'] = {
+                'http': self.http_proxy,
+            }
+        func = getattr(requests, method)
+        rsp = func(url, **kwargs)
+        ct = rsp.headers['content-type']
+        if rsp.status_code >= 400 and rsp.status_code < 500:
+            raise IgnoreRequest(url)
+        if rsp.status_code == 200:
+            if re.search('html|json|text|xml|rss', ct, re.I):
+                return Response(urljoin(url, rsp.url), rsp.content, rsp)
+            else:
+                raise IgnoreRequest(url)
+        else:
+            logger.error('Request fail: {} {}'.format(url, rsp.status_code))
+            raise RetryRequest(url)
+
+    @asyncio.coroutine
+    def request(self):
+        '''
+        do request default timeout is 300s
+
+        >>> req = Request('http://example.com')
+        >>> rsp = yield from req.request()
+        '''
+        start_time = time()
+
         try:
-            rsp = yield from aiohttp.request(method, url, **kwargs)
-            ct = rsp.headers.get('content-type', '')
-            logger.info('Request: {} {} {} {}'.format(method.upper(),
-                                                      url, rsp.status, ct))
-            yield from asyncio.sleep(5)
-            if rsp.status >= 400 and rsp.status < 500:
-                raise IgnoreRequest(url)
-            if rsp.status == 200:
-                if re.search('html|json|text|xml|rss', ct, re.I):
-                    content = yield from rsp.read()
-                    rsp.close()
-                    self.request_time = time() - start_time
-                    return Response(urljoin(url, rsp.url), content, rsp)
-                else:
-                    raise IgnoreRequest(url)
-            else:
-                logger.error('Request fail: {} {}'.format(url, rsp.status))
-                raise RetryRequest(url)
-
-        except (aiohttp.IncompleteRead, aiohttp.BadStatusLine) as exc:
-            logger.error(str(exc) + ': ' + url)
-            kwargs = {}
-            kwargs.update(self.kwargs.copy())
-            kwargs['headers'] = headers
-            if self.http_proxy:
-                kwargs['proxies'] = {
-                    'http': self.http_proxy,
-                }
-            func = getattr(requests, method)
-            rsp = func(url, **kwargs)
-            ct = rsp.headers['content-type']
-            if rsp.status_code >= 400 and rsp.status_code < 500:
-                raise IgnoreRequest(url)
-            if rsp.status_code == 200:
-                if re.search('html|json|text|xml|rss', ct, re.I):
-                    self.request_time = time() - start_time
-                    return Response(urljoin(url, rsp.url), rsp.content, rsp)
-                else:
-                    raise IgnoreRequest(url)
-            else:
-                logger.error('Request fail: {} {}'.format(url, rsp.status_code))
-                raise RetryRequest(url)
+            yield from self._aio_request()
+        except (aiohttp.IncompleteRead, aiohttp.BadStatusLine, ValueError) as exc:
+            logger.error(str(exc) + ': ' + self.url)
+            self._request()
         except aiohttp.errors.OsConnectionError as e:
-            logger.error("Request fail OsConnectionError: {} {}".format(url, e))
-            raise IgnoreRequest(url)
+            logger.error("Request fail OsConnectionError: {} {}".format(self.url, e))
+            raise IgnoreRequest(self.url)
 
-        except ValueError as e:
-            logger.error("Request fail ValueError: {} {}".format(url, e))
-            raise IgnoreRequest(url)
+        self.request_time = time() - start_time
