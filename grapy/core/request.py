@@ -26,7 +26,7 @@ class Request(object):
 
     __slots__ = ['url', 'method', 'callback', 'callback_args', 'kwargs',
                  'spider', 'unique', 'req_id', 'ref', 'group', 'engine',
-                 'request_time', 'http_proxy']
+                 'request_time', 'http_proxy', 'async']
 
     def __init__(self, url, method='get',
             callback='parse', callback_args = [], **kwargs):
@@ -43,6 +43,7 @@ class Request(object):
         self.engine = None
         self.request_time = 0
         self.http_proxy = None
+        self.async = True
 
     def pack(self):
         '''
@@ -172,9 +173,13 @@ class Request(object):
         start_time = time()
 
         try:
-            yield from self._aio_request()
+            if self.async:
+                yield from self._aio_request()
+            else:
+                self._request()
         except (aiohttp.IncompleteRead, aiohttp.BadStatusLine, ValueError) as exc:
             logger.error(str(exc) + ': ' + self.url)
+            start_time = time()
             self._request()
         except aiohttp.errors.OsConnectionError as e:
             logger.error("Request fail OsConnectionError: {} {}".format(self.url, e))
