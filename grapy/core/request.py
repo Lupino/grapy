@@ -174,13 +174,13 @@ class Request(object):
 
         try:
             if self.async:
-                yield from self._aio_request()
+                return (yield from self._aio_request())
             else:
-                self._request()
+                return self._request()
         except (aiohttp.IncompleteRead, aiohttp.BadStatusLine, ValueError) as exc:
             logger.error(str(exc) + ': ' + self.url)
             start_time = time()
-            self._request()
+            return self._request()
         except aiohttp.errors.OsConnectionError as e:
             logger.error("Request fail OsConnectionError: {} {}".format(self.url, e))
             raise IgnoreRequest(self.url)
