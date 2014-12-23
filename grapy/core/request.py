@@ -121,7 +121,6 @@ class Request(object):
         ct = rsp.headers.get('content-type', '')
         logger.info('Request: {} {} {} {}'.format(method.upper(),
                                                   url, rsp.status, ct))
-        yield from asyncio.sleep(5)
         if rsp.status >= 400 and rsp.status < 500:
             raise IgnoreRequest(url)
         if rsp.status == 200:
