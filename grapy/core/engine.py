@@ -154,4 +154,7 @@ class Engine(object):
             self.loop.run_forever()
 
     def shutdown(self):
-        self.loop.close()
+        if self.loop.is_running():
+            self.loop.stop()
+        else:
+            self.loop.close()
