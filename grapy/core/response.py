@@ -51,7 +51,7 @@ class Response(object):
         '''return the instance of BeautifulSoup'''
         if self._soup is None:
             text = self.text
-            self._soup = BeautifulSoup(text)
+            self._soup = BeautifulSoup(text, 'html.parser')
         return self._soup
 
     def _get_charset(self, content):
