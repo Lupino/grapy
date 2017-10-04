@@ -2,6 +2,7 @@ from .core import BaseScheduler
 import hashlib
 import asyncio
 import re
+from .utils import logger
 re_url = re.compile('^https?://[^/]+')
 
 __all__ = ['Scheduler']
@@ -45,13 +46,13 @@ class Scheduler(BaseScheduler):
     def submit_req(self, req):
         try:
             yield from BaseScheduler.submit_req(self, req)
-        except:
-            pass
+        except Exception as e:
+            logger.exception(e)
         key = hash_url(req.url)
         self._storage[key] = {'key': key, 'req': req, 'crawled': True}
 
     def submit_item(self, item):
         try:
             yield from BaseScheduler.submit_item(self, item)
-        except:
-            pass
+        except Exception as e:
+            logger.exception(e)
