@@ -43,4 +43,4 @@ class BaseScheduler(object):
             return
 
         self.is_running = True
-        return asyncio.Task(self.run())
+        return self.engine.loop.create_task(self.run())

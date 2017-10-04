@@ -37,7 +37,7 @@ class Scheduler(BaseScheduler):
 
             req = self._queue.pop()
             yield from self._sem.acquire()
-            task = asyncio.Task(self.submit_req(req))
+            task = self.engine.loop.create_task(self.submit_req(req))
             task.add_done_callback(lambda t: self._sem.release())
 
         self.is_running = False

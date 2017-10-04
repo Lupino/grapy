@@ -149,7 +149,7 @@ class Engine(object):
         self.sched.start()
 
     def start(self, forever = True):
-        asyncio.Task(self.run())
+        self.loop.create_task(self.run())
         if forever:
             self.loop.run_forever()
 
