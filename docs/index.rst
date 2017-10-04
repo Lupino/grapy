@@ -1,5 +1,4 @@
-.. grapy documentation master file, created by
-   sphinx-quickstart on Thu Dec  5 10:47:15 2013.
+.. grapy documentation master file, created by sphinx-quickstart on Thu Dec  5 10:47:15 2013.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
@@ -253,10 +252,9 @@ grapyed so far, the final code for our Spider would be like this::
                elem = site.find('a')
                if elem:
                    item = DmozItem()
-                   title = elem.get_text()
-                   link = elem.get('href')
-                   desc = site.get_text()
-                   print(title, link, desc)
+                   item['title'] = elem.get_text()
+                   item['link'] = elem.get('href')
+                   item['desc'] = site.get_text()
                    items.append(item)
 
            return items
