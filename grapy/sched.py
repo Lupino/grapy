@@ -19,7 +19,7 @@ class Scheduler(BaseScheduler):
         self._queue = queue
         self._sem = asyncio.Semaphore(max_tasks)
 
-    def push_req(self, req):
+    async def push_req(self, req):
         if not re_url.match(req.url):
             return
         key = hash_url(req.url)
@@ -31,28 +31,28 @@ class Scheduler(BaseScheduler):
 
         self.start()
 
-    def run(self):
+    async def run(self):
         while True:
             if len(self._queue) == 0:
                 break
 
             req = self._queue.pop()
-            yield from self._sem.acquire()
+            await self._sem.acquire()
             task = self.engine.loop.create_task(self.submit_req(req))
             task.add_done_callback(lambda t: self._sem.release())
 
         self.is_running = False
 
-    def submit_req(self, req):
+    async def submit_req(self, req):
         try:
-            yield from BaseScheduler.submit_req(self, req)
+            await BaseScheduler.submit_req(self, req)
         except Exception as e:
             logger.exception(e)
         key = hash_url(req.url)
         self._storage[key] = {'key': key, 'req': req, 'crawled': True}
 
-    def submit_item(self, item):
+    async def submit_item(self, item):
         try:
-            yield from BaseScheduler.submit_item(self, item)
+            await BaseScheduler.submit_item(self, item)
         except Exception as e:
             logger.exception(e)

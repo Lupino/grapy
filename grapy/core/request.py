@@ -26,7 +26,7 @@ class Request(object):
 
     __slots__ = ['url', 'method', 'callback', 'callback_args', 'kwargs',
                  'spider', 'unique', 'req_id', 'ref', 'group', 'engine',
-                 'request_time', 'http_proxy', 'async']
+                 'request_time', 'http_proxy']
 
     def __init__(self, url, method='get',
             callback='parse', callback_args = [], **kwargs):
@@ -43,7 +43,6 @@ class Request(object):
         self.engine = None
         self.request_time = 0
         self.http_proxy = None
-        self.async = True
 
     def pack(self):
         '''
@@ -91,7 +90,7 @@ class Request(object):
                     setattr(req, key, val)
         return req
 
-    def _aio_request(self):
+    async def _aio_request(self):
         method = self.method.lower()
         headers = self.engine.headers.copy()
 
@@ -106,8 +105,8 @@ class Request(object):
 
         start_time = time()
 
-        with aiohttp.ClientSession(loop=self.engine.loop) as client:
-            rsp = yield from client.request(method, url, **kwargs)
+        async with aiohttp.ClientSession(loop=self.engine.loop) as client:
+            rsp = await client.request(method, url, **kwargs)
 
             ct = rsp.headers.get('content-type', '')
             logger.info('Request: {} {} {} {}'.format(method.upper(),
@@ -116,7 +115,7 @@ class Request(object):
                 raise IgnoreRequest(url)
             if rsp.status == 200:
                 if re.search('html|json|text|xml|rss', ct, re.I):
-                    content = yield from rsp.read()
+                    content = await rsp.read()
                     rsp.close()
                     self.request_time = time() - start_time
                     return Response(urljoin(url, str(rsp.url)), content, rsp)
@@ -149,21 +148,17 @@ class Request(object):
             logger.error('Request fail: {} {}'.format(url, rsp.status_code))
             raise RetryRequest(url)
 
-    @asyncio.coroutine
-    def request(self):
+    async def request(self):
         '''
         do request default timeout is 300s
 
         >>> req = Request('http://example.com')
-        >>> rsp = yield from req.request()
+        >>> rsp = await req.request()
         '''
         start_time = time()
 
         try:
-            if self.async:
-                return (yield from self._aio_request())
-            else:
-                return self._request()
+            return (await self._aio_request())
         except (aiohttp.http_exceptions.BadHttpMessage, aiohttp.http_exceptions.BadStatusLine, ValueError) as exc:
             logger.error(str(exc) + ': ' + self.url)
             start_time = time()

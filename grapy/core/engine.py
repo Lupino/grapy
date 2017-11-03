@@ -63,43 +63,34 @@ class Engine(object):
         self.sched = sched
         self.sched.engine = self
 
-    @asyncio.coroutine
-    def process(self, req):
+    async def process(self, req):
         req.engine = self
-        req = yield from self.process_middleware('before_process_request', req)
+        req = await self.process_middleware('before_process_request', req)
 
-        rsp = yield from req.request()
+        rsp = await req.request()
 
         rsp.req = req
 
-        rsp = yield from self.process_middleware('after_process_response', rsp)
+        rsp = await self.process_middleware('after_process_response', rsp)
 
-        yield from self.process_response(rsp)
+        await self.process_response(rsp)
 
-    @asyncio.coroutine
-    def process_middleware(self, name, obj):
+    async def process_middleware(self, name, obj):
         for mid in self.middlewares:
             if hasattr(mid, name):
                 func = getattr(mid, name)
-                obj = func(obj)
-                if isinstance(obj, asyncio.Future) or inspect.isgenerator(obj):
-                    obj = yield from obj
+                obj = await func(obj)
 
         return obj
 
-    @asyncio.coroutine
-    def process_item(self, item, pipelines=None):
+    async def process_item(self, item, pipelines=None):
         if not pipelines:
             pipelines = self.pipelines
 
         for pip in pipelines:
+            item = await pip.process(item)
 
-            item = pip.process(item)
-            if isinstance(item, asyncio.Future) or inspect.isgenerator(item):
-                item = yield from item
-
-    @asyncio.coroutine
-    def process_response(self, rsp):
+    async def process_response(self, rsp):
         spider_name = rsp.req.spider
         callback = rsp.req.callback
         args = rsp.req.callback_args
@@ -117,35 +108,29 @@ class Engine(object):
                 item.group = rsp.req.group
                 item.ref = rsp.url
 
-                yield from self.push_req(item)
+                await self.push_req(item)
             elif isinstance(item, Item):
-                yield from self.push_item(item)
+                await self.push_item(item)
             else:
                 raise EngineError('Unknow type')
 
-    @asyncio.coroutine
-    def push_req(self, req, middleware=True):
+    async def push_req(self, req, middleware=True):
         if middleware:
-            req = yield from self.process_middleware('before_push_request', req)
+            req = await self.process_middleware('before_push_request', req)
 
-        req = self.sched.push_req(req)
-        if isinstance(req, asyncio.Future) or inspect.isgenerator(req):
-            req = yield from req
+        await self.sched.push_req(req)
 
-    @asyncio.coroutine
-    def push_item(self, item):
-            ret = self.sched.push_item(item)
-            if isinstance(ret, asyncio.Future) or inspect.isgenerator(ret):
-                ret = yield from ret
+    async def push_item(self, item):
+            await self.sched.push_item(item)
 
-    def start_request(self):
+    async def start_request(self):
         for spider in self.spiders.values():
             for req in spider.start_request():
                 req.spider = spider.name
-                yield from self.push_req(req)
+                await self.push_req(req)
 
-    def run(self):
-        yield from self.start_request()
+    async def run(self):
+        await self.start_request()
         self.sched.start()
 
     def start(self, forever = True):

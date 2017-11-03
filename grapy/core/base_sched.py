@@ -8,31 +8,30 @@ class BaseScheduler(object):
         self.engine = None
         self.is_running = False
 
-    def push_req(self, req):
+    async def push_req(self, req):
         '''
         push the request
         '''
         raise NotImplementedError('you must rewrite at sub class')
 
-    def push_item(self, item):
-        yield from self.submit_item(item)
+    async def push_item(self, item):
+        await self.submit_item(item)
 
-    def submit_req(self, req):
+    async def submit_req(self, req):
         try:
-            yield from self.engine.process(req)
+            await self.engine.process(req)
 
         except IgnoreRequest:
             pass
 
 
-    def submit_item(self, item):
+    async def submit_item(self, item):
         try:
-            yield from self.engine.process_item(item)
+            await self.engine.process_item(item)
         except (DropItem, ItemError):
             pass
 
-    @asyncio.coroutine
-    def run(self):
+    async def run(self):
         '''
         run the scheduler
         '''
