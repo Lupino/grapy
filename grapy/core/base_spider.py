@@ -18,7 +18,7 @@ class BaseSpider(object):
             self.start_urls = start_urls
 
     def start_request(self):
-        '''you can rewrite it for custem start request'''
+        '''you must rewrite it for a start request'''
         raise NotImplementedError('you must rewrite at sub class')
 
     def parse(self, response):

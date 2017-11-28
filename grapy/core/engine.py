@@ -137,10 +137,16 @@ class Engine(object):
             await self.sched.push_item(item)
 
     async def start_request(self):
+        async def push_req(req, spider):
+            req.spider = spider.name
+            await self.push_req(req)
+
         for spider in self.spiders.values():
-            for req in spider.start_request():
-                req.spider = spider.name
-                await self.push_req(req)
+            if asyncio.iscoroutinefunction(spider.start_request):
+                await spider.start_request(lambda req: push_req(req, spider))
+            else:
+                for req in spider.start_request():
+                    await push_req(req, spider)
 
     async def run(self):
         await self.start_request()
