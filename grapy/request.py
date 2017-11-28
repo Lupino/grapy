@@ -1,10 +1,10 @@
 import re
 import aiohttp
-from ..utils import logger
+from .utils import logger
 from urllib.parse import urljoin
 from .response import Response
-from .base_request import BaseRequest
-from .exceptions import IgnoreRequest, RetryRequest
+from .core import BaseRequest
+from .core.exceptions import IgnoreRequest, RetryRequest
 import requests
 from time import time
 

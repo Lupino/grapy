@@ -1,5 +1,3 @@
-from .request import Request
-
 __all__ = ['BaseSpider']
 
 class BaseSpider(object):
@@ -21,10 +19,7 @@ class BaseSpider(object):
 
     def start_request(self):
         '''you can rewrite it for custem start request'''
-        for url in self.start_urls:
-            req = Request(url)
-            req.unique = False
-            yield req
+        raise NotImplementedError('you must rewrite at sub class')
 
     def parse(self, response):
         '''
