@@ -113,33 +113,31 @@ of domains).
 They define an initial list of URLs to download, how to follow links, and how
 to parse the contents of those pages to extract :ref:`items <topics-items>`.
 
-To create a Spider, you must subclass :class:`grapy.core.BaseSpider`, and
+To create a Spider, you must subclass :class:`grapy.BaseSpider`, and
 define the three main, mandatory, attributes:
 
-* :attr:`~grapy.core.BaseSpider.name`: identifies the Spider. It must be
+* :attr:`~grapy.BaseSpider.name`: identifies the Spider. It must be
   unique, that is, you can't set the same name for different Spiders.
 
-* :attr:`~grapy.core.BaseSpider.start_urls`: is a list of URLs where the
-  Spider will begin to crawl from.  So, the first pages downloaded will be those
-  listed here. The subsequent URLs will be generated successively from data
-  contained in the start URLs.
+* :attr:`~grapy.BaseSpider.start_request`: is a method of spider, which will
+  be called on initial the spider. :class:`grapy.Request`
 
-* :meth:`~grapy.core.BaseSpider.parse` is a method of the spider, which will
-  be called with the downloaded :class:`~grapy.core.Response` object of each
+* :meth:`~grapy.BaseSpider.parse` is a method of the spider, which will
+  be called with the downloaded :class:`grapy.Response` object of each
   start URL. The response is passed to the method as the first and only
   argument.
 
   This method is responsible for parsing the response data and extracting
   crawled data (as grapyed items) and more URLs to follow.
 
-  The :meth:`~grapy.core.BaseSpider.parse` method is in charge of processing
-  the response and returning crawled data (as :class:`~grapy.core.Item`
-  objects) and more URLs to follow (as :class:`~grapy.core.Request` objects).
+  The :meth:`~grapy.BaseSpider.parse` method is in charge of processing
+  the response and returning crawled data (as :class:`grapy.Item`
+  objects) and more URLs to follow (as :class:`grapy.Request` objects).
 
 This is the code for our first Spider; save it in a file named
 ``dmoz_spider.py`` under the ``tutorial/spiders`` directory::
 
-   from grapy.core import BaseSpider
+   from grapy import BaseSpider, Request
 
    class DmozSpider(BaseSpider):
        name = "dmoz"
@@ -147,6 +145,14 @@ This is the code for our first Spider; save it in a file named
            "http://www.dmoz.org/Computers/Programming/Languages/Python/Books/",
            "http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/"
        ]
+
+       # def start_request(self):
+       #     for url in self.start_urls:
+       #         yield Request(url)
+
+       async def start_request(self, next):
+           for url in self.start_urls:
+               await next(Request(url))
 
        def parse(self, response):
            filename = response.url.split("/")[-2]
@@ -178,24 +184,24 @@ created: *Books* and *Resources*, with the content of both URLs.
 What just happened under the hood?
 ==================================
 
-Grapy creates :class:`grapy.core.Request` objects for each URL in the
-``start_urls`` attribute of the Spider, and assigns them the ``parse`` method of
+Grapy process every :class:`grapy.Request` of the Spider on start_request,
+and assigns them the ``parse`` method of
 the spider as their callback function.
 
 These Requests are scheduled, then executed, and
-:class:`grapy.core.Response` objects are returned and then fed back to the
-spider, through the :meth:`~grapy.core.BaseSpider.parse` method.
+:class:`grapy.Response` objects are returned and then fed back to the
+spider, through the :meth:`~grapy.BaseSpider.parse` method.
 
 Extracting Items
 ================
 
 There are several ways to extract data from web pages.
-Scrapy use :attr:`~grapy.core.Response.soup` and
-:meth:`~grapy.core.Response.select` base on `BeautifulSoup`_
+Scrapy use :attr:`~grapy.Response.soup` and
+:meth:`~grapy.Response.select` base on `BeautifulSoup`_
 
 Let's add this code to our spider::
 
-   from grapy.core import BaseSpider
+   from grapy import BaseSpider
 
    class DmozSpider(BaseSpider):
        name = "dmoz"
@@ -203,6 +209,14 @@ Let's add this code to our spider::
            "http://www.dmoz.org/Computers/Programming/Languages/Python/Books/",
            "http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/"
        ]
+
+       # def start_request(self):
+       #     for url in self.start_urls:
+       #         yield Request(url)
+
+       async def start_request(self, next):
+           for url in self.start_urls:
+               await next(Request(url))
 
        def parse(self, response):
            for site in response.select('ul li'):
@@ -236,7 +250,7 @@ Spiders are expected to return their grapyed data inside
 :class:`~grapy.core.Item` objects. So, in order to return the data we've
 grapyed so far, the final code for our Spider would be like this::
 
-   from grapy.core import BaseSpider
+   from grapy import BaseSpider
    from tutorial.items import DmozItem
 
    class DmozSpider(BaseSpider):
@@ -245,6 +259,14 @@ grapyed so far, the final code for our Spider would be like this::
            "http://www.dmoz.org/Computers/Programming/Languages/Python/Books/",
            "http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/"
        ]
+
+       # def start_request(self):
+       #     for url in self.start_urls:
+       #         yield Request(url)
+
+       async def start_request(self, next):
+           for url in self.start_urls:
+               await next(Request(url))
 
        def parse(self, response):
            items = []
