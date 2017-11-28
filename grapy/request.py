@@ -17,14 +17,7 @@ class Request(BaseRequest):
 
     async def _aio_request(self):
         method = self.method.lower()
-        headers = self.engine.headers.copy()
-
-        headers.update(self.kwargs.get('headers', {}))
-
-        kwargs = {}
-
-        kwargs.update(self.kwargs.copy())
-        kwargs['headers'] = headers
+        kwargs = self.kwargs.copy()
 
         url = self.url
 
@@ -52,10 +45,7 @@ class Request(BaseRequest):
     def _request(self):
         url = self.url
         method = self.method.lower()
-        headers = self.engine.headers.copy()
-        headers.update(self.kwargs.get('headers', {}))
         kwargs = self.kwargs.copy()
-        kwargs['headers'] = headers
         if self.http_proxy:
             kwargs['proxy'] = self.http_proxy,
         func = getattr(requests, method)
@@ -74,7 +64,7 @@ class Request(BaseRequest):
 
     async def request(self):
         '''
-        do request default timeout is 300s
+        do request
 
         >>> req = Request('http://example.com')
         >>> rsp = await req.request()

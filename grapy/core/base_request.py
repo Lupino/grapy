@@ -83,7 +83,7 @@ class BaseRequest(object):
 
     async def request(self):
         '''
-        do request default timeout is 300s
+        do request
 
         >>> req = Request('http://example.com')
         >>> rsp = await req.request()
