@@ -1,5 +1,5 @@
 import asyncio
-from .request import Request
+from .base_request import BaseRequest
 import inspect
 from .item import Item
 from ..utils import logger
@@ -103,7 +103,7 @@ class Engine(object):
         spider = self.get_spider(spider_name)
         func = getattr(spider, callback)
         async def process_response_item(item):
-            if isinstance(item, Request):
+            if isinstance(item, BaseRequest):
                 item.spider = spider.name
                 logger.debug('Find url[{}] on requset[{}] by spider[{}]'.\
                         format(item.url, rsp.url, spider.name))
