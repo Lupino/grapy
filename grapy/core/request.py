@@ -106,24 +106,23 @@ class Request(object):
         start_time = time()
 
         async with aiohttp.ClientSession(loop=self.engine.loop) as client:
-            rsp = await client.request(method, url, **kwargs)
-
-            ct = rsp.headers.get('content-type', '')
-            logger.info('Request: {} {} {} {}'.format(method.upper(),
-                                                      url, rsp.status, ct))
-            if rsp.status >= 400 and rsp.status < 500:
-                raise IgnoreRequest(url)
-            if rsp.status == 200:
-                if re.search('html|json|text|xml|rss', ct, re.I):
-                    content = await rsp.read()
-                    rsp.close()
-                    self.request_time = time() - start_time
-                    return Response(urljoin(url, str(rsp.url)), content, rsp)
-                else:
+            async with client.request(method, url, **kwargs) as rsp:
+                ct = rsp.headers.get('content-type', '')
+                logger.info('Request: {} {} {} {}'.format(method.upper(),
+                                                          url, rsp.status, ct))
+                if rsp.status >= 400 and rsp.status < 500:
                     raise IgnoreRequest(url)
-            else:
-                logger.error('Request fail: {} {}'.format(url, rsp.status))
-                raise RetryRequest(url)
+                if rsp.status == 200:
+                    if re.search('html|json|text|xml|rss', ct, re.I):
+                        content = await rsp.read()
+                        rsp.close()
+                        self.request_time = time() - start_time
+                        return Response(urljoin(url, str(rsp.url)), content, rsp)
+                    else:
+                        raise IgnoreRequest(url)
+                else:
+                    logger.error('Request fail: {} {}'.format(url, rsp.status))
+                    raise RetryRequest(url)
 
     def _request(self):
         url = self.url
