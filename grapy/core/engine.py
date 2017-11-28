@@ -99,33 +99,33 @@ class Engine(object):
     async def process_response(self, rsp):
         spider_name = rsp.req.spider
         callback = rsp.req.callback
-        args = rsp.req.callback_args
+        args = list(rsp.req.callback_args)
         spider = self.get_spider(spider_name)
         func = getattr(spider, callback)
+        async def process_response_item(item):
+            if isinstance(item, Request):
+                item.spider = spider.name
+                logger.debug('Find url[{}] on requset[{}] by spider[{}]'.\
+                        format(item.url, rsp.url, spider.name))
+
+                item.group = rsp.req.group
+                item.ref = rsp.url
+
+                await self.push_req(item)
+            elif isinstance(item, Item):
+                await self.push_item(item)
+            else:
+                raise EngineError('Unknow type')
+
         if asyncio.iscoroutinefunction(func):
-            args.append(self.process_response_item)
+            args.append(process_response_item)
             await func(rsp, *args)
         else:
             items = func(rsp, *args)
             if items is None:
                 return
             for item in items:
-                await self.process_response_item(item)
-
-    async def process_response_item(self, item):
-        if isinstance(item, Request):
-            item.spider = spider.name
-            logger.debug('Find url[{}] on requset[{}] by spider[{}]'.\
-                    format(item.url, rsp.url, spider.name))
-
-            item.group = rsp.req.group
-            item.ref = rsp.url
-
-            await self.push_req(item)
-        elif isinstance(item, Item):
-            await self.push_item(item)
-        else:
-            raise EngineError('Unknow type')
+                await process_response_item(item)
 
     async def push_req(self, req, middleware=True):
         if middleware:
