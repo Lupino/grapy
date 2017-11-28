@@ -79,7 +79,10 @@ class Engine(object):
         for mid in self.middlewares:
             if hasattr(mid, name):
                 func = getattr(mid, name)
-                obj = await func(obj)
+                if asyncio.iscoroutinefunction(func):
+                    obj = await func(obj)
+                else:
+                    obj = func(obj)
 
         return obj
 
@@ -88,7 +91,10 @@ class Engine(object):
             pipelines = self.pipelines
 
         for pip in pipelines:
-            item = await pip.process(item)
+            if asyncio.iscoroutinefunction(pip.process):
+                item = await pip.process(item)
+            else:
+                item = pip.process(item)
 
     async def process_response(self, rsp):
         spider_name = rsp.req.spider
