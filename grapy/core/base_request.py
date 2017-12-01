@@ -7,7 +7,7 @@ class BaseRequest(object):
     '''The BaseRequest, all the request recommend to extends this'''
 
     _keys = ['url', 'method', 'callback', 'callback_args', 'kwargs', 'spider',
-            'req_id', 'group']
+             'req_id', 'group']
     _default = [{}, (), 'get', None, [], 'default']
 
     _json_keys = ['callback_args', 'kwargs']
@@ -15,8 +15,8 @@ class BaseRequest(object):
     _null_char = '\x01'
 
     __slots__ = ['url', 'method', 'callback', 'callback_args', 'kwargs',
-                 'spider', 'unique', 'req_id', 'ref', 'group', 'engine',
-                 'request_time', 'http_proxy']
+                 'spider', 'unique', 'req_id', 'group', 'engine',
+                 'request_time']
 
     def __init__(self, url, method='get',
             callback='parse', callback_args = [], **kwargs):
@@ -28,11 +28,9 @@ class BaseRequest(object):
         self.spider = 'default'
         self.unique = True
         self.req_id = 0
-        self.ref = 0
         self.group = 0
         self.engine = None
         self.request_time = 0
-        self.http_proxy = None
 
     def pack(self):
         '''

@@ -46,8 +46,6 @@ class Request(BaseRequest):
         url = self.url
         method = self.method.lower()
         kwargs = self.kwargs.copy()
-        if self.http_proxy:
-            kwargs['proxy'] = self.http_proxy,
         func = getattr(requests, method)
         rsp = func(url, **kwargs)
         ct = rsp.headers['content-type']
