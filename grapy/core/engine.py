@@ -3,7 +3,7 @@ from .base_request import BaseRequest
 import inspect
 from .item import Item
 from ..utils import logger
-from .exceptions import EngineError
+from .exceptions import EngineError, IgnoreRequest
 
 __all__ = ['Engine']
 
@@ -122,9 +122,11 @@ class Engine(object):
             for item in items:
                 await process_response_item(item)
 
-    async def push_req(self, req, middleware=True):
-        if middleware:
+    async def push_req(self, req):
+        try:
             req = await self.process_middleware('before_push_request', req)
+        except IgnoreRequest:
+            return
 
         await self.sched.push_req(req)
 
