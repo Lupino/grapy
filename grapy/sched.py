@@ -3,6 +3,7 @@ import hashlib
 import asyncio
 import re
 from .utils import logger
+from .core.exceptions import IgnoreRequest, RetryRequest
 re_url = re.compile('^https?://[^/]+')
 
 __all__ = ['Scheduler']
@@ -13,10 +14,10 @@ def hash_url(url):
     return h.hexdigest()
 
 class Scheduler(BaseScheduler):
-    def __init__(self, storage = {}, queue=[], max_tasks=5):
+    def __init__(self, max_tasks=5):
         BaseScheduler.__init__(self)
-        self._storage = storage
-        self._queue = queue
+        self._storage = {}
+        self._queue = []
         self._sem = asyncio.Semaphore(max_tasks)
 
     async def push_req(self, req):
@@ -27,7 +28,7 @@ class Scheduler(BaseScheduler):
             return
 
         self._queue.insert(0, req)
-        self._storage[key] = {'key': key, 'req': req, 'crawled': False}
+        self._storage[key] = True
 
         self.start()
 
@@ -46,13 +47,11 @@ class Scheduler(BaseScheduler):
     async def submit_req(self, req):
         try:
             await BaseScheduler.submit_req(self, req)
-        except Exception as e:
-            logger.exception(e)
-        key = hash_url(req.url)
-        self._storage[key] = {'key': key, 'req': req, 'crawled': True}
-
-    async def submit_item(self, item):
-        try:
-            await BaseScheduler.submit_item(self, item)
+            key = hash_url(req.url)
+        except IgnoreRequest:
+            pass
+        except RetryRequest:
+            req.unique = False
+            await self.push_req(req)
         except Exception as e:
             logger.exception(e)

@@ -1,5 +1,4 @@
 import asyncio
-from .exceptions import IgnoreRequest, DropItem, ItemError
 
 __all__ = ["BaseScheduler"]
 
@@ -18,18 +17,10 @@ class BaseScheduler(object):
         await self.submit_item(item)
 
     async def submit_req(self, req):
-        try:
-            await self.engine.process(req)
-
-        except IgnoreRequest:
-            pass
-
+        await self.engine.process(req)
 
     async def submit_item(self, item):
-        try:
-            await self.engine.process_item(item)
-        except (DropItem, ItemError):
-            pass
+        await self.engine.process_item(item)
 
     async def run(self):
         '''
