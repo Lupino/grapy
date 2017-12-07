@@ -46,13 +46,14 @@ class BaseRequest(object):
             if not isinstance(val, str):
                 val = str(val)
             return val
-        return bytes(self._null_char.join(map(_pack, self._keys)), 'utf-8')
+        return self._null_char.join(map(_pack, self._keys))
 
     def unpack(self, payload):
         '''
         unpack the Request payload
         '''
-        payload = str(payload, 'utf-8')
+        if isinstance(payload, bytes):
+            payload = str(payload, 'utf-8')
         payload = payload.split(self._null_char)
         payload = dict(zip(self._keys, payload))
 
@@ -63,14 +64,14 @@ class BaseRequest(object):
         return payload
 
     def __bytes__(self):
-        return self.pack()
+        return bytes(self.pack(), 'utf-8')
 
     @classmethod
     def build(cls, payload):
         '''
         build a Request
         '''
-        req = Request('')
+        req = cls('')
         payload = req.unpack(payload)
         for key, val in payload.items():
             if val:
