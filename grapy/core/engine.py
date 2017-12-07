@@ -3,7 +3,7 @@ from .base_request import BaseRequest
 import inspect
 from .item import Item
 from ..utils import logger
-from .exceptions import EngineError, IgnoreRequest
+from .exceptions import EngineError, IgnoreRequest, ItemError, DropItem
 
 __all__ = ['Engine']
 
@@ -125,13 +125,15 @@ class Engine(object):
     async def push_req(self, req):
         try:
             req = await self.process_middleware('before_push_request', req)
+            await self.sched.push_req(req)
         except IgnoreRequest:
-            return
-
-        await self.sched.push_req(req)
+            pass
 
     async def push_item(self, item):
+        try:
             await self.sched.push_item(item)
+        except (DropItem, ItemError):
+            pass
 
     async def start_request(self):
         async def push_req(req, spider):
