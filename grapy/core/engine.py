@@ -128,12 +128,16 @@ class Engine(object):
             await self.sched.push_req(req)
         except IgnoreRequest:
             pass
+        except Exception as e:
+            logger.exception(e)
 
     async def push_item(self, item):
         try:
             await self.sched.push_item(item)
         except (DropItem, ItemError):
             pass
+        except Exception as e:
+            logger.exception(e)
 
     async def start_request(self):
         async def push_req(req, spider):
