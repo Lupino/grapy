@@ -12,7 +12,7 @@ requires = ['asyncio', 'aiohttp', 'beautifulsoup4', 'requests']
 
 setup(
     name='grapy',
-    version='0.1.8',
+    version='0.1.9',
     description='Grapy, a fast high-level screen scraping and web crawling framework for Python 3.3 or later base on asyncio.',
     author='Li Meng Jun',
     author_email='lmjubuntu@gmail.com',
