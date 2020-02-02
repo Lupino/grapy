@@ -23,7 +23,7 @@ class Request(BaseRequest):
 
         start_time = time()
 
-        async with aiohttp.ClientSession(loop=self.engine.loop) as client:
+        async with aiohttp.ClientSession() as client:
             async with client.request(method, url, **kwargs) as rsp:
                 ct = rsp.headers.get('content-type', '')
                 logger.info('Request: {} {} {} {}'.format(method.upper(),
