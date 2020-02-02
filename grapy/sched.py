@@ -14,11 +14,13 @@ def hash_url(url):
     return h.hexdigest()
 
 class Scheduler(BaseScheduler):
-    def __init__(self, max_tasks=5):
+    def __init__(self, max_tasks=5, auto_shutdown=True):
         BaseScheduler.__init__(self)
         self._storage = {}
         self._queue = []
         self._sem = asyncio.Semaphore(max_tasks)
+        self.tasks = []
+        self.auto_shutdown = auto_shutdown
 
     async def push_req(self, req):
         if not re_url.match(req.url):
@@ -41,8 +43,15 @@ class Scheduler(BaseScheduler):
             await self._sem.acquire()
             task = self.engine.loop.create_task(self.submit_req(req))
             task.add_done_callback(lambda t: self._sem.release())
+            task.add_done_callback(lambda t: self.tasks.remove(t))
+            self.tasks.append(task)
 
         self.is_running = False
+
+        if self.auto_shutdown:
+            await asyncio.gather(*self.tasks)
+            if not self.is_running:
+                self.engine.shutdown()
 
     async def submit_req(self, req):
         try:
