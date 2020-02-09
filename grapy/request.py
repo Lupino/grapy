@@ -31,13 +31,10 @@ class Request(BaseRequest):
                 if rsp.status >= 400 and rsp.status < 500:
                     raise IgnoreRequest(url)
                 if rsp.status == 200:
-                    if re.search('html|json|text|xml|rss', ct, re.I):
-                        content = await rsp.read()
-                        rsp.close()
-                        self.request_time = time() - start_time
-                        return Response(urljoin(url, str(rsp.url)), content, rsp)
-                    else:
-                        raise IgnoreRequest(url)
+                    content = await rsp.read()
+                    rsp.close()
+                    self.request_time = time() - start_time
+                    return Response(urljoin(url, str(rsp.url)), content, rsp)
                 else:
                     logger.error('Request fail: {} {}'.format(url, rsp.status))
                     raise RetryRequest(url)
