@@ -23,7 +23,6 @@ class Scheduler(BaseScheduler):
         self.auto_shutdown = auto_shutdown
 
         self.shutdown_task = None
-        self.locker = asyncio.Lock()
 
     async def push_req(self, req):
         if not re_url.match(req.url):
@@ -49,7 +48,8 @@ class Scheduler(BaseScheduler):
             task.add_done_callback(lambda t: self.tasks.remove(t))
             self.tasks.append(task)
 
-        self.is_running = False
+        async with self.locker:
+            self.is_running = False
 
         if self.auto_shutdown:
             async with self.locker:

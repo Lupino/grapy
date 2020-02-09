@@ -6,6 +6,7 @@ class BaseScheduler(object):
     def __init__(self):
         self.engine = None
         self.is_running = False
+        self.locker = asyncio.Lock()
 
     async def push_req(self, req):
         '''
@@ -28,9 +29,14 @@ class BaseScheduler(object):
         '''
         raise NotImplementedError('you must rewrite at sub class')
 
-    def start(self):
-        if self.is_running:
-            return
+    async def async_start(self):
+        async with self.locker:
+            if self.is_running:
+                return
 
-        self.is_running = True
-        return self.engine.loop.create_task(self.run())
+            self.is_running = True
+
+        await self.run()
+
+    def start(self):
+        return self.engine.loop.create_task(self.async_start())

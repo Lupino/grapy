@@ -153,7 +153,6 @@ class Engine(object):
 
     async def run(self):
         await self.start_request()
-        self.sched.start()
 
     def start(self, forever = True):
         self.loop.create_task(self.run())
