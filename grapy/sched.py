@@ -22,6 +22,9 @@ class Scheduler(BaseScheduler):
         self.tasks = []
         self.auto_shutdown = auto_shutdown
 
+        self.shutdown_task = None
+        self.locker = asyncio.Lock()
+
     async def push_req(self, req):
         if not re_url.match(req.url):
             return
@@ -49,9 +52,20 @@ class Scheduler(BaseScheduler):
         self.is_running = False
 
         if self.auto_shutdown:
-            await asyncio.gather(*self.tasks)
+            async with self.locker:
+                if self.shutdown_task is None:
+                    self.shutdown_task = self.engine.loop.create_task(self.run_auto_shutdown())
+
+    async def run_auto_shutdown(self):
+            while True:
+                await asyncio.gather(*self.tasks)
+                if len(self.tasks) == 0:
+                    break
+
             if not self.is_running:
                 self.engine.shutdown()
+
+            self.shutdown_task = None
 
     async def submit_req(self, req):
         try:
