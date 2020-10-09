@@ -8,10 +8,12 @@ re_url = re.compile('^https?://[^/]+')
 
 __all__ = ['Scheduler']
 
+
 def hash_url(url):
     h = hashlib.sha1()
     h.update(bytes(url, 'utf-8'))
     return h.hexdigest()
+
 
 class Scheduler(BaseScheduler):
     def __init__(self, max_tasks=5, auto_shutdown=True):
@@ -54,18 +56,19 @@ class Scheduler(BaseScheduler):
         if self.auto_shutdown:
             async with self.locker:
                 if self.shutdown_task is None:
-                    self.shutdown_task = self.engine.loop.create_task(self.run_auto_shutdown())
+                    self.shutdown_task = self.engine.loop.create_task(
+                        self.run_auto_shutdown())
 
     async def run_auto_shutdown(self):
-            while True:
-                await asyncio.gather(*self.tasks)
-                if len(self.tasks) == 0:
-                    break
+        while True:
+            await asyncio.gather(*self.tasks)
+            if len(self.tasks) == 0:
+                break
 
-            if not self.is_running:
-                self.engine.shutdown()
+        if not self.is_running:
+            self.engine.shutdown()
 
-            self.shutdown_task = None
+        self.shutdown_task = None
 
     async def submit_req(self, req):
         try:

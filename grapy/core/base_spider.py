@@ -1,5 +1,6 @@
 __all__ = ['BaseSpider']
 
+
 class BaseSpider(object):
     '''The BaseSpider, all the spider recommend to extends this'''
 

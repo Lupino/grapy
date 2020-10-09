@@ -7,9 +7,12 @@ RE_HTML = re.compile('<meta.+charset=["\']([^\'"]+?)[\'"].+>', re.I)
 
 __all__ = ['Response']
 
+
 class Response(object):
 
-    __slots__ = ['url', 'raw', 'encoding', 'content', '_soup', 'req', 'headers']
+    __slots__ = [
+        'url', 'raw', 'encoding', 'content', '_soup', 'req', 'headers'
+    ]
 
     def __init__(self, url, content, raw):
         self.raw = raw
@@ -25,26 +28,25 @@ class Response(object):
         'return the unicode document'
         content = self.content
         if self.encoding:
-            return str(content, self.encoding, errors = 'ignore')
+            return str(content, self.encoding, errors='ignore')
 
         charset = self._get_charset(content)
         if charset:
             self.encoding = charset
-            return str(content, charset, errors = 'ignore')
+            return str(content, charset, errors='ignore')
         else:
             try:
                 self.encoding = 'GBK'
                 return str(content, 'GBK')
             except UnicodeDecodeError:
                 self.encoding = 'UTF-8'
-                return str(content, 'UTF-8', errors = 'ignore')
+                return str(content, 'UTF-8', errors='ignore')
 
     def json(self):
         '''return json document, maybe raise'''
         data = self.content
         data = json.loads(data.decode('utf-8'))
         return data
-
 
     @property
     def soup(self):
@@ -55,7 +57,6 @@ class Response(object):
         return self._soup
 
     def _get_charset(self, content):
-
         def map_charset(charset):
             if charset:
                 charset = charset.upper()

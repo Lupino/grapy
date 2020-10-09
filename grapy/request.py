@@ -10,11 +10,11 @@ from time import time
 
 __all__ = ['Request']
 
+
 class Request(BaseRequest):
     '''
     the Request object
     '''
-
     async def _aio_request(self):
         method = self.method.lower()
         kwargs = self.kwargs.copy()
@@ -26,8 +26,8 @@ class Request(BaseRequest):
         async with aiohttp.ClientSession() as client:
             async with client.request(method, url, **kwargs) as rsp:
                 ct = rsp.headers.get('content-type', '')
-                logger.info('Request: {} {} {} {}'.format(method.upper(),
-                                                          url, rsp.status, ct))
+                logger.info('Request: {} {} {} {}'.format(
+                    method.upper(), url, rsp.status, ct))
                 if rsp.status >= 400 and rsp.status < 500:
                     raise IgnoreRequest(url)
                 if rsp.status == 200:
@@ -68,12 +68,14 @@ class Request(BaseRequest):
 
         try:
             return (await self._aio_request())
-        except (aiohttp.http_exceptions.BadHttpMessage, aiohttp.http_exceptions.BadStatusLine, ValueError) as exc:
+        except (aiohttp.http_exceptions.BadHttpMessage,
+                aiohttp.http_exceptions.BadStatusLine, ValueError) as exc:
             logger.error(str(exc) + ': ' + self.url)
             start_time = time()
             return self._request()
         except aiohttp.client_exceptions.ClientError as e:
-            logger.error("Request fail OsConnectionError: {} {}".format(self.url, e))
+            logger.error("Request fail OsConnectionError: {} {}".format(
+                self.url, e))
             raise IgnoreRequest(self.url)
 
         self.request_time = time() - start_time

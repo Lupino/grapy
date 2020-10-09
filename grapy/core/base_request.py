@@ -3,23 +3,31 @@ import re
 
 __all__ = ['BaseRequest']
 
+
 class BaseRequest(object):
     '''The BaseRequest, all the request recommend to extends this'''
 
-    _keys = ['url', 'method', 'callback', 'callback_args', 'kwargs', 'spider',
-             'req_id', 'group']
+    _keys = [
+        'url', 'method', 'callback', 'callback_args', 'kwargs', 'spider',
+        'req_id', 'group'
+    ]
     _default = [{}, (), 'get', None, [], 'default']
 
     _json_keys = ['callback_args', 'kwargs']
 
     _null_char = '\x01'
 
-    __slots__ = ['url', 'method', 'callback', 'callback_args', 'kwargs',
-                 'spider', 'unique', 'req_id', 'group', 'engine',
-                 'request_time']
+    __slots__ = [
+        'url', 'method', 'callback', 'callback_args', 'kwargs', 'spider',
+        'unique', 'req_id', 'group', 'engine', 'request_time'
+    ]
 
-    def __init__(self, url, method='get',
-            callback='parse', callback_args = [], **kwargs):
+    def __init__(self,
+                 url,
+                 method='get',
+                 callback='parse',
+                 callback_args=[],
+                 **kwargs):
         self.url = re.sub('#.+', '', url)
         self.method = method
         self.callback = callback
@@ -46,6 +54,7 @@ class BaseRequest(object):
             if not isinstance(val, str):
                 val = str(val)
             return val
+
         return self._null_char.join(map(_pack, self._keys))
 
     def unpack(self, payload):
@@ -78,7 +87,6 @@ class BaseRequest(object):
                 if hasattr(req, key):
                     setattr(req, key, val)
         return req
-
 
     async def request(self):
         '''

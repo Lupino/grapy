@@ -7,6 +7,7 @@ from .exceptions import EngineError, IgnoreRequest, ItemError, DropItem
 
 __all__ = ['Engine']
 
+
 class Engine(object):
 
     __slots__ = ['pipelines', 'spiders', 'middlewares', 'sched', 'loop']
@@ -35,7 +36,7 @@ class Engine(object):
 
     def add_spider(self, spider):
         if spider.name in self.spiders.keys():
-            raise EngineError('Spider[%s] is already exists'%spider.name)
+            raise EngineError('Spider[%s] is already exists' % spider.name)
         self.spiders[spider.name] = spider
 
     def remove_spider(self, spider_name):
@@ -46,7 +47,7 @@ class Engine(object):
         if spider:
             return spider
         else:
-            raise EngineError('Spider[%s] is not found'%name)
+            raise EngineError('Spider[%s] is not found' % name)
 
     def set_pipelines(self, pipelines):
         self.pipelines = pipelines
@@ -105,13 +106,13 @@ class Engine(object):
             if new_item is not None:
                 item = new_item
 
-
     async def process_response(self, rsp):
         spider_name = rsp.req.spider
         callback = rsp.req.callback
         args = list(rsp.req.callback_args)
         spider = self.get_spider(spider_name)
         func = getattr(spider, callback)
+
         async def process_response_item(item):
             if isinstance(item, BaseRequest):
                 item.spider = spider.name
@@ -169,7 +170,7 @@ class Engine(object):
     async def run(self):
         await self.start_request()
 
-    def start(self, forever = True):
+    def start(self, forever=True):
         self.loop.create_task(self.run())
         if forever:
             self.loop.run_forever()

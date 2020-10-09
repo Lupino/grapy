@@ -6,18 +6,17 @@ from uuid import uuid1 as uuid
 
 __all__ = ['Item', 'load_item', 'dump_item']
 
+
 class Item(object):
     _null_char = '\x01'
 
     _extra_field = {'name': 'extra', 'type': 'json'}
 
-    _fields =  [
-        {'name': 'extra', 'type': 'json'}
-    ]
+    _fields = [{'name': 'extra', 'type': 'json'}]
 
     __slots__ = ['__dict__']
 
-    def __init__(self, payload = {}):
+    def __init__(self, payload={}):
 
         if self._extra_field not in self._fields:
             self._fields.append(self._extra_field)
@@ -85,7 +84,7 @@ class Item(object):
         none_keys = list(filter(lambda x: not payload[x], payload.keys()))
         list(map(payload.pop, none_keys))
 
-        other_keys = filter(lambda x : x not in keys, payload.keys())
+        other_keys = filter(lambda x: x not in keys, payload.keys())
         other = dict(zip(other_keys, map(lambda x: payload[x], other_keys)))
 
         payload[self._extra_field['name']] = other
@@ -102,6 +101,7 @@ class Item(object):
             if not isinstance(val, str):
                 val = str(val)
             return val
+
         return self._null_char.join(map(_pack, keys))
 
     def unpack(self, payload):
@@ -149,22 +149,26 @@ class Item(object):
     def unique(self):
         return str(uuid())
 
+
 NULL_CHAR = '\x02\x00\x00'
+
+
 def dump_item(klass, *args, **kwargs):
     '''dump the Item'''
     cls = klass.__class__
     cls_name = re.search("'([^']+)'", str(cls)).group(1)
     if not isinstance(klass, Item):
-        raise ItemError(
-                'ItemError: %s is not instance crawl.core.item.Item'%cls_name)
+        raise ItemError('ItemError: %s is not instance crawl.core.item.Item' %
+                        cls_name)
     retval = NULL_CHAR.join([cls_name, klass.pack()])
     return retval
+
 
 def load_item(string):
     '''load the Item'''
     cls_name, data = string.split(NULL_CHAR)
     klass = import_module(cls_name, data)
     if not isinstance(klass, Item):
-        raise ItemError(
-                'ItemError: %s is not instance crawl.core.item.Item'%cls_name)
+        raise ItemError('ItemError: %s is not instance crawl.core.item.Item' %
+                        cls_name)
     return klass
