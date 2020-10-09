@@ -1,8 +1,9 @@
 from importlib import import_module as _import_module
 import logging
+import glob
+import os.path
 
-__all__ = ['import_module', 'import_pipelines', 'import_middlewares',
-           'import_spiders', "logger"]
+__all__ = ['import_module', 'logger', 'import_spiders']
 
 logger = logging.getLogger('grapy')
 
@@ -16,47 +17,53 @@ def import_module(module_name, *args, **kwargs):
     obj = getattr(module, module_name[idx+1:])
     return obj(*args, **kwargs)
 
-def import_pipelines(pipelines):
-    '''
-    import module from a list like::
 
-        [
-            {'class_or_method:index': args},
-            {'class_or_method:index': kwargs},
-            {'class_or_method:index': None}
-        ]
+def fixed_module_name(module_name):
+    if os.path.isfile(module_name):
+        if module_name.endswith('.py'):
+            module_name = module_name[:-3]
 
-    the index is a number or string for order
-    '''
-    retval = []
-    for module_name, values in pipelines.items():
-        args = []
-        kwargs = {}
-        idx = module_name.find(':')
-        order = 0
-        if idx > -1:
-            order = int(module_name[idx+1:])
-            module_name = module_name[:idx]
-        tp = type(values)
-        if tp == tuple or tp == list:
-            args = values
-        elif tp == dict:
-            keys = values.keys()
-            if 'args' in keys or 'kwargs' in keys:
-                args = values.get('args', ())
-                kwargs = values.get('kwargs', {})
+        if module_name.startswith('./'):
+            module_name = module_name[2:]
+
+        return module_name.replace('/', '.')
+
+    return module_name
+
+
+def import_spiders(spider_path, module_prefix=None, ignore_cls_names=['BaseSpider']):
+    spiders = []
+
+    for path in glob.glob(os.path.join(spider_path, '*.py')):
+        if path.endswith('__init__.py'):
+            continue
+
+        module_path = fixed_module_name(path)
+        if module_prefix:
+            spider_name = os.path.basename(path)[:-3]
+            module_path = module_prefix + spider_name
+
+        module = _import_module(module_path)
+        ignore = getattr(module, 'ignore', False)
+
+        if ignore:
+            continue
+
+        for cls_name in dir(module):
+            if not cls_name.endswith('Spider'):
+                continue
+
+            if cls_name in ignore_cls_names:
+                continue
+
+            spiderclass = getattr(module, cls_name, None)
+            if spiderclass:
+                spider = spiderclass()
+                if spider.name is None:
+                    spider.name = cls_name[:-6]
+                spiders.append(spider)
             else:
-                kwargs = values
+                logging.error('{}.{} invalid.'.format(module_path,
+                                                      cls_name))
 
-        elif values is not None:
-            args.append(values)
-
-        retval.append((import_module(module_name, *args, **kwargs), order))
-
-    retval = [ret[0] for ret in sorted(retval, key=lambda x: x[1])]
-
-    return retval
-
-import_middlewares = import_pipelines
-import_spiders = import_pipelines
-
+    return spiders
