@@ -86,10 +86,21 @@ class Engine(object):
             pipelines = self.pipelines
 
         for pip in pipelines:
-            if asyncio.iscoroutinefunction(pip.process):
-                item = await pip.process(item)
-            else:
-                item = pip.process(item)
+            new_item = None
+            if hasattr(pip, 'process'):
+                if asyncio.iscoroutinefunction(pip.process):
+                    new_item = await pip.process(item)
+                else:
+                    new_item = pip.process(item)
+            elif str(type(pip)) == "<class 'function'>":
+                if asyncio.iscoroutinefunction(pip):
+                    new_item = await pip(item)
+                else:
+                    new_item = pip(item)
+
+            if new_item is not None:
+                item = new_item
+
 
     async def process_response(self, rsp):
         spider_name = rsp.req.spider
