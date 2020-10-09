@@ -16,9 +16,15 @@ class BaseSpider(object):
         '''you mast rewrite it for a start request'''
         return []
 
+    # async def start_request(self, next):
+    #     await next([])
+
     def parse(self, response):
         '''
         the default spider parse function.
         you must rewrite on a sub class.
         '''
         raise NotImplementedError('you must rewrite at sub class')
+
+    # async def parse(self, response, next):
+    #     await next(item)
