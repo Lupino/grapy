@@ -103,7 +103,7 @@ class Response(object):
         :rtype: bs4.element.PageElement
         """
         soup = self.soup
-        return soup.select_one(selector, namespaces, **kwargs):
+        return soup.select_one(selector, namespaces, **kwargs)
 
     def select(self, selector, namespaces=None, limit=None, **kwargs):
         """Perform a CSS selection operation on the current element.
