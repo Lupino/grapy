@@ -86,119 +86,44 @@ class Response(object):
 
         return None
 
-    def select(self, selector):
-        '''
-        select elements use the css selector
-        '''
+    def select_one(self, selector, namespaces=None, **kwargs):
+        """Perform a CSS selection operation on the current element.
+
+        :param selector: A CSS selector.
+
+        :param namespaces: A dictionary mapping namespace prefixes
+           used in the CSS selector to namespace URIs. By default,
+           Beautiful Soup will use the prefixes it encountered while
+           parsing the document.
+
+        :param kwargs: Keyword arguments to be passed into SoupSieve's
+           soupsieve.select() method.
+
+        :return: A PageElement.
+        :rtype: bs4.element.PageElement
+        """
         soup = self.soup
-        re_tag = re.compile('^[a-z0-9]+$', re.I | re.U)
-        re_attribute = re.compile('^(?P<tag>\w+)?\[(?P<attribute>[a-z\-_]+)(?P<operator>[=~\|\^\$\*]?)=?"?(?P<value>[^\]"]*)"?\]$')
+        return soup.select_one(selector, namespaces, **kwargs):
 
-        def attribute_checker(operator, attribute, value = ''):
-            """
-            Takes an operator, attribute and optional value; returns a function
-            that will return True for elements that match that combination.
-            """
+    def select(self, selector, namespaces=None, limit=None, **kwargs):
+        """Perform a CSS selection operation on the current element.
 
-            return {
-                '=': lambda el: el.get(attribute) == value,
-                # attribute includes value as one of a set of space separated tokens
-                '~': lambda el: value in el.get(attribute, '').split(),
-                # attribute starts with value
-                '^': lambda el: el.get(attribute, '').startswith(value),
-                # attribute ends with value
-                '$': lambda el: el.get(attribute, '').endswith(value),
-                # attribute contains value
-                '*': lambda el: value in el.get(attribute, ''),
-                # attribute is either exactly value or starts with value-
-                '|': lambda el: el.get(attribute, '') == value \
-                        or el.get(attribute, '').startswith('%s-' % value),
-            }.get(operator, lambda el: el.has_attr(attribute))
+        This uses the SoupSieve library.
 
-        tokens = selector.split()
-        current_context = [soup]
+        :param selector: A string containing a CSS selector.
 
-        for index, token in enumerate(tokens):
-            if tokens[index - 1] == '>':
-                continue
+        :param namespaces: A dictionary mapping namespace prefixes
+           used in the CSS selector to namespace URIs. By default,
+           Beautiful Soup will use the prefixes it encountered while
+           parsing the document.
 
-            m = re_attribute.match(token)
-            if m:
-                # Attribute selector
-                tag, attribute, operator, value = m.groups()
+        :param limit: After finding this number of results, stop looking.
 
-                if not tag:
-                    tag = True
+        :param kwargs: Keyword arguments to be passed into SoupSieve's
+           soupsieve.select() method.
 
-                checker = attribute_checker(operator, attribute, value)
-
-                found = []
-                for context in current_context:
-                    found.extend([el for el in context.find_all(tag) if checker(el)])
-
-                current_context = found
-                continue
-
-            if '#' in token:
-                # ID selector
-                tag, id = token.split('#', 1)
-                if not tag:
-                    tag = True
-
-                el = current_context[0].find(tag, {'id': id})
-                if not el:
-                    return []
-
-                current_context = [el]
-                continue
-
-            if '.' in token:
-                # Class selector
-                tag, klass = token.split('.', 1)
-                if not tag:
-                    tag = True
-
-                klasses = set(klass.split('.'))
-                found = []
-                for context in current_context:
-                    found.extend(
-                        context.find_all(tag, {'class': lambda attr:
-                            attr and klasses.issubset(attr.split())})
-                    )
-
-                current_context = found
-                continue
-
-            if '*' in token:
-                # Star selector
-                found = []
-                for context in current_context:
-                    found.extend(context.find_all(True))
-
-                current_context = found
-                continue
-
-            if token == '>':
-                # Child selector
-                tag = tokens[index + 1]
-                if not tag:
-                    tag = True
-
-                found = []
-                for context in current_context:
-                    found.extend(context.find_all(tag, recursive=False))
-
-                current_context = found
-                continue
-
-            # Here we should just have a regular tag
-            if not re_tag.match(token):
-                return []
-
-            found = []
-            for context in current_context:
-                found.extend(context.find_all(token))
-
-            current_context = found
-
-        return current_context
+        :return: A ResultSet of PageElements.
+        :rtype: bs4.element.ResultSet
+        """
+        soup = self.soup
+        return soup.select(selector, namespaces, limit, **kwargs)
