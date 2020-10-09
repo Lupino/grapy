@@ -74,10 +74,14 @@ class Engine(object):
         for mid in self.middlewares:
             if hasattr(mid, name):
                 func = getattr(mid, name)
+                new_obj = None
                 if asyncio.iscoroutinefunction(func):
-                    obj = await func(obj)
+                    new_obj = await func(obj)
                 else:
-                    obj = func(obj)
+                    new_obj = func(obj)
+
+                if new_obj is not None:
+                    obj = new_obj
 
         return obj
 
