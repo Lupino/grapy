@@ -3,18 +3,22 @@ import logging
 import glob
 import os.path
 
-__all__ = ['import_module', 'logger', 'import_spiders']
+__all__ = [
+    'import_module', 'logger', 'import_spiders', 'middleware',
+    'before_push_request', 'before_request', 'after_response'
+]
 
 logger = logging.getLogger('grapy')
+
 
 def import_module(module_name, *args, **kwargs):
     '''
     import the module and init it
     '''
-    logger.debug('import module[%s]'%module_name)
+    logger.debug('import module[%s]' % module_name)
     idx = module_name.rfind('.')
     module = _import_module(module_name[:idx])
-    obj = getattr(module, module_name[idx+1:])
+    obj = getattr(module, module_name[idx + 1:])
     return obj(*args, **kwargs)
 
 
@@ -31,7 +35,9 @@ def fixed_module_name(module_name):
     return module_name
 
 
-def import_spiders(spider_path, module_prefix=None, ignore_cls_names=['BaseSpider']):
+def import_spiders(spider_path,
+                   module_prefix=None,
+                   ignore_cls_names=['BaseSpider']):
     spiders = []
 
     for path in glob.glob(os.path.join(spider_path, '*.py')):
@@ -63,7 +69,24 @@ def import_spiders(spider_path, module_prefix=None, ignore_cls_names=['BaseSpide
                     spider.name = cls_name[:-6]
                 spiders.append(spider)
             else:
-                logging.error('{}.{} invalid.'.format(module_path,
-                                                      cls_name))
+                logging.error('{}.{} invalid.'.format(module_path, cls_name))
 
     return spiders
+
+
+class Middleware(object):
+    __slots__ = ['before_request', 'after_request', 'before_push_request']
+
+
+def middleware(name):
+    def _dref(func):
+        middleware = Middleware()
+        setattr(middleware, name, func)
+        return middleware
+
+    return _dref
+
+
+before_push_request = middleware('before_push_request')
+before_request = middleware('before_request')
+after_request = middleware('after_request')

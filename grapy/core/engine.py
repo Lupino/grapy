@@ -60,13 +60,13 @@ class Engine(object):
 
     async def process(self, req):
         req.engine = self
-        req = await self.process_middleware('before_process_request', req)
+        req = await self.process_middleware('before_request', req)
 
         rsp = await req.request()
 
         rsp.req = req
 
-        rsp = await self.process_middleware('after_process_response', rsp)
+        rsp = await self.process_middleware('after_request', rsp)
 
         await self.process_response(rsp)
 
