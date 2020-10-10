@@ -115,7 +115,8 @@ class Engine(object):
 
         async def process_response_item(item):
             if isinstance(item, BaseRequest):
-                item.spider = spider.name
+                if item.spider is None:
+                    item.spider = spider.name
                 logger.debug('Find url[{}] on requset[{}] by spider[{}]'.\
                         format(item.url, rsp.url, spider.name))
 

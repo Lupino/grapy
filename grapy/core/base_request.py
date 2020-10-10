@@ -27,13 +27,14 @@ class BaseRequest(object):
                  method='get',
                  callback='parse',
                  callback_args=[],
+                 spider=None,
                  **kwargs):
         self.url = re.sub('#.+', '', url)
         self.method = method
         self.callback = callback
         self.callback_args = callback_args
         self.kwargs = kwargs
-        self.spider = 'default'
+        self.spider = spider
         self.unique = True
         self.req_id = 0
         self.group = 0
