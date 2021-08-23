@@ -16,6 +16,7 @@ setup(
     description='Grapy, a fast high-level screen scraping and web crawling framework for Python 3.3 or later base on asyncio.',
     author='Li Meng Jun',
     author_email='lmjubuntu@gmail.com',
+    license='MIT',
     url='https://github.com/Lupino/grapy',
     packages=packages,
     package_dir={'grapy': 'grapy'},
