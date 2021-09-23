@@ -10,16 +10,13 @@ __all__ = ['Engine']
 
 class Engine(object):
 
-    __slots__ = ['pipelines', 'spiders', 'middlewares', 'sched', 'loop']
+    __slots__ = ['pipelines', 'spiders', 'middlewares', 'sched']
 
-    def __init__(self, loop=None):
+    def __init__(self):
         self.pipelines = []
         self.spiders = {}
         self.middlewares = []
         self.sched = None
-        self.loop = loop
-        if not self.loop:
-            self.loop = asyncio.get_event_loop()
 
     def set_spiders(self, spiders):
         self.spiders = {}
@@ -168,16 +165,5 @@ class Engine(object):
                 for req in spider.start_request():
                     await push_req(req, spider)
 
-    async def run(self):
-        await self.start_request()
-
-    def start(self, forever=True):
-        self.loop.create_task(self.run())
-        if forever:
-            self.loop.run_forever()
-
-    def shutdown(self):
-        if self.loop.is_running():
-            self.loop.stop()
-        else:
-            self.loop.close()
+    async def start(self):
+         await self.start_request()

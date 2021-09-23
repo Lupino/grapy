@@ -172,7 +172,7 @@ To put our spider to work, go to the project's top level directory and edit ``ma
     engine.set_sched(sched)
     engine.set_spiders([DmozSpider()])
 
-    engine.start()
+    await engine.start()
 
 then::
 
