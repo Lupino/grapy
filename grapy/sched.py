@@ -5,6 +5,7 @@ import re
 from .utils import logger
 from .core.exceptions import IgnoreRequest, RetryRequest
 from asyncio_pool import AioPool
+from bloom_filter2 import BloomFilter
 
 re_url = re.compile('^https?://[^/]+')
 
@@ -18,20 +19,20 @@ def hash_url(url):
 
 
 class Scheduler(BaseScheduler):
-    def __init__(self, size=10):
+    def __init__(self, size=10, filter = BloomFilter(max_elements=10000, error_rate=0.1)):
         BaseScheduler.__init__(self)
-        self._storage = {}
         self._pool = AioPool(size = size)
+        self._filter = filter
 
     async def push_req(self, req):
         if not re_url.match(req.url):
             return
         key = hash_url(req.url)
-        if req.unique and key in self._storage:
+        if req.unique and key in self._filter:
             return
 
         await self._pool.spawn(self.submit_req(req))
-        self._storage[key] = True
+        self._filter.add(key)
 
     async def submit_req(self, req):
         try:
