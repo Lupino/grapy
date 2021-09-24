@@ -31,7 +31,7 @@ class Scheduler(BaseScheduler):
         if req.unique and key in self._filter:
             return
 
-        await self._pool.spawn(self.submit_req(req))
+        self._pool.spawn_n(self.submit_req(req))
         self._filter.add(key)
 
     async def submit_req(self, req):
