@@ -33,7 +33,6 @@ class Request(BaseRequest):
                 if rsp.status == 200:
                     content = await rsp.read()
                     rsp.close()
-                    self.request_time = time() - start_time
                     return Response(urljoin(url, str(rsp.url)), content, rsp)
                 else:
                     logger.error('Request fail: {} {}'.format(url, rsp.status))
@@ -77,5 +76,5 @@ class Request(BaseRequest):
             logger.error("Request fail OsConnectionError: {} {}".format(
                 self.url, e))
             raise IgnoreRequest(self.url)
-
-        self.request_time = time() - start_time
+        finally:
+            self.request_time = time() - start_time
