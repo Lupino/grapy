@@ -21,8 +21,6 @@ class Request(BaseRequest):
 
         url = self.url
 
-        start_time = time()
-
         async with aiohttp.ClientSession() as client:
             async with client.request(method, url, **kwargs) as rsp:
                 ct = rsp.headers.get('content-type', '')

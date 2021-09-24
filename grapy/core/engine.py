@@ -1,6 +1,5 @@
 import asyncio
 from .base_request import BaseRequest
-import inspect
 from .item import Item
 from ..utils import logger
 from .exceptions import EngineError, IgnoreRequest, ItemError, DropItem
@@ -114,8 +113,9 @@ class Engine(object):
             if isinstance(item, BaseRequest):
                 if item.spider is None:
                     item.spider = spider.name
-                logger.debug('Find url[{}] on requset[{}] by spider[{}]'.\
-                        format(item.url, rsp.url, spider.name))
+                logger.debug(
+                    'Find url[{}] on requset[{}] by spider[{}]'.format(
+                        item.url, rsp.url, spider.name))
 
                 item.group = rsp.req.group
                 item.ref = rsp.url
@@ -166,4 +166,4 @@ class Engine(object):
                     await push_req(req, spider)
 
     async def start(self):
-         await self.start_request()
+        await self.start_request()

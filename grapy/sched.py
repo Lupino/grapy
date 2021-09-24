@@ -1,6 +1,5 @@
 from .core import BaseScheduler
 import hashlib
-import asyncio
 import re
 from .utils import logger
 from .core.exceptions import IgnoreRequest, RetryRequest
@@ -19,9 +18,11 @@ def hash_url(url):
 
 
 class Scheduler(BaseScheduler):
-    def __init__(self, size=10, filter = BloomFilter(max_elements=10000, error_rate=0.1)):
+    def __init__(self,
+                 size=10,
+                 filter=BloomFilter(max_elements=10000, error_rate=0.1)):
         BaseScheduler.__init__(self)
-        self._pool = AioPool(size = size)
+        self._pool = AioPool(size=size)
         self._filter = filter
 
     async def push_req(self, req):

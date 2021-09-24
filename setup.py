@@ -8,12 +8,16 @@ packages = [
     'grapy.core',
 ]
 
-requires = ['asyncio', 'aiohttp', 'beautifulsoup4', 'requests', 'asyncio-pool', 'bloom-filter2']
+requires = [
+    'asyncio', 'aiohttp', 'beautifulsoup4', 'requests', 'asyncio-pool',
+    'bloom-filter2'
+]
 
 setup(
     name='grapy',
     version='0.1.11',
-    description='Grapy, a fast high-level screen scraping and web crawling framework for Python 3.3 or later base on asyncio.',
+    description='''Grapy, a fast high-level screen scraping and web crawling
+    framework for Python 3.3 or later base on asyncio.''',
     author='Li Meng Jun',
     author_email='lmjubuntu@gmail.com',
     license='MIT',

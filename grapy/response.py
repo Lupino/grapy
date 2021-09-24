@@ -2,7 +2,7 @@ import re
 from bs4 import BeautifulSoup
 import json
 
-RE_XML = re.compile('<\?xml.+encoding=["\']([^\'"]+?)["\'].+\?>', re.I)
+RE_XML = re.compile('<?xml.+encoding=["\']([^\'"]+?)["\'].+?>', re.I)
 RE_HTML = re.compile('<meta.+charset=["\']([^\'"]+?)[\'"].+>', re.I)
 
 __all__ = ['Response']
@@ -64,11 +64,7 @@ class Response(object):
                     charset = 'GBK'
             return charset
 
-        ct = ''
-        try:
-            ct = self.headers.get('content-type', '').lower()
-        except:
-            pass
+        ct = self.headers.get('content-type', '').lower()
         p = re.search('charset=(.+)$', ct)
         if p:
             charset = p.group(1)

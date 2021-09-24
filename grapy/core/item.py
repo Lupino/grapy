@@ -49,8 +49,10 @@ class Item(object):
 
     def pop(self, key, default=None):
         '''
-        D.pop(k[,d]) -> v, remove specified key and return the corresponding value.
-        If key is not found, d is returned if given, otherwise KeyError is raised
+        D.pop(k[,d]) -> v, remove specified key and
+        return the corresponding value.
+        If key is not found, d is returned if given,
+        otherwise KeyError is raised
         '''
         return self.__dict__.pop(key, default)
 
@@ -62,9 +64,15 @@ class Item(object):
         '''
         D.update([E, ]**F) -> None.
         * Update D from dict/iterable E and F.
-        * If E present and has a .keys() method, does:     for k in E: D[k] = E[k]
-        * If E present and lacks .keys() method, does:     for (k, v) in E: D[k] = v
-        * In either case, this is followed by: for k in F: D[k] = F[k]
+        * If E present and has a .keys() method, does:
+        *    for k in E:
+        *        D[k] = E[k]
+        * If E present and lacks .keys() method, does:
+        *    for (k, v) in E:
+        *        D[k] = v
+        * In either case, this is followed by:
+        *    for k in F:
+        *        D[k] = F[k]
         '''
         for k, v in item.items():
             if isinstance(v, str):

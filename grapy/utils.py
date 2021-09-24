@@ -6,7 +6,7 @@ from .core.base_spider import BaseSpider
 
 __all__ = [
     'import_module', 'logger', 'import_spiders', 'middleware',
-    'before_push_request', 'before_request', 'after_response', 'make_spider'
+    'before_push_request', 'before_request', 'after_request', 'make_spider'
 ]
 
 logger = logging.getLogger('grapy')
