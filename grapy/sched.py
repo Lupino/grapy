@@ -11,9 +11,9 @@ re_url = re.compile('^https?://[^/]+')
 __all__ = ['Scheduler']
 
 
-def hash_url(url):
+def hash_req(req):
     h = hashlib.sha256()
-    h.update(bytes(url, 'utf-8'))
+    h.update(bytes(req))
     return h.hexdigest()
 
 
@@ -28,7 +28,7 @@ class Scheduler(BaseScheduler):
     async def push_req(self, req):
         if not re_url.match(req.url):
             return
-        key = hash_url(req.url)
+        key = hash_req(req)
         if req.unique and key in self._filter:
             return
 
