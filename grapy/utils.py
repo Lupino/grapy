@@ -51,6 +51,7 @@ def import_spiders(spider_path,
             spider_name = os.path.basename(path)[:-3]
             module_path = module_prefix + spider_name
 
+        logger.error(f'import spider[{module_path}]')
         module = _import_module(module_path)
         ignore = getattr(module, 'ignore', False)
 
@@ -64,11 +65,13 @@ def import_spiders(spider_path,
             spiderclass = getattr(module, cls_name, None)
             if isinstance(spiderclass, BaseSpider):
                 spiders.append(spiderclass)
+                logger.error(f'import spider[{spiderclass.name}]')
             elif cls_name.endswith('Spider'):
                 spider = spiderclass()
                 if spider.name is None:
                     spider.name = cls_name[:-6]
                 spiders.append(spider)
+                logger.error(f'import spider[{spider.name}]')
 
     return spiders
 
