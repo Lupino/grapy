@@ -38,10 +38,11 @@ def fixed_module_name(module_name):
 
 def import_spiders(spider_path,
                    module_prefix=None,
+                   pattern='*',
                    ignore_cls_names=['BaseSpider']):
     spiders = []
 
-    for path in glob.glob(os.path.join(spider_path, '*.py')):
+    for path in glob.glob(os.path.join(spider_path, pattern + '.py')):
         if path.endswith('__init__.py'):
             continue
 
