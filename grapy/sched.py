@@ -1,33 +1,18 @@
 from .core import BaseScheduler
-import re
 from .utils import logger
 from .core.exceptions import IgnoreRequest, RetryRequest
 from asyncio_pool import AioPool
-from bloom_filter2 import BloomFilter
-
-re_url = re.compile('^https?://[^/]+')
 
 __all__ = ['Scheduler']
 
 
-
 class Scheduler(BaseScheduler):
-    def __init__(self,
-                 size=10,
-                 filter=BloomFilter(max_elements=10000, error_rate=0.1)):
+    def __init__(self, size=10):
         BaseScheduler.__init__(self)
         self._pool = AioPool(size=size)
-        self._filter = filter
 
     async def push_req(self, req):
-        if not re_url.match(req.url):
-            return
-        key = req.get_hash()
-        if req.unique and key in self._filter:
-            return
-
         self._pool.spawn_n(self.submit_req(req))
-        self._filter.add(key)
 
     async def submit_req(self, req):
         try:
