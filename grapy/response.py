@@ -11,10 +11,11 @@ __all__ = ['Response']
 class Response(object):
 
     __slots__ = [
-        'url', 'raw', 'encoding', 'content', '_soup', 'req', 'headers'
+        'url', 'raw', 'encoding', 'content', '_soup', 'req', 'headers',
+        'status', 'content_type'
     ]
 
-    def __init__(self, url, content, raw):
+    def __init__(self, url, content, raw, status, content_type):
         self.raw = raw
         self.url = url
         self._soup = None
@@ -22,6 +23,8 @@ class Response(object):
         self.content = content
         self.req = None
         self.headers = raw.headers
+        self.status = status
+        self.content_type = content_type
 
     @property
     def text(self):

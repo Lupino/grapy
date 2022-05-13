@@ -1,10 +1,9 @@
-import re
 import aiohttp
 from .utils import logger
 from urllib.parse import urljoin
 from .response import Response
 from .core import BaseRequest
-from .core.exceptions import IgnoreRequest, RetryRequest
+from .core.exceptions import IgnoreRequest
 import requests
 from time import time
 
@@ -24,17 +23,12 @@ class Request(BaseRequest):
         async with aiohttp.ClientSession() as client:
             async with client.request(method, url, **kwargs) as rsp:
                 ct = rsp.headers.get('content-type', '')
-                logger.info('Request: {} {} {} {}'.format(
-                    method.upper(), url, rsp.status, ct))
-                if rsp.status >= 400 and rsp.status < 500:
-                    raise IgnoreRequest(url)
-                if rsp.status == 200:
-                    content = await rsp.read()
-                    rsp.close()
-                    return Response(urljoin(url, str(rsp.url)), content, rsp)
-                else:
-                    logger.error('Request fail: {} {}'.format(url, rsp.status))
-                    raise RetryRequest(url)
+                status = rsp.status
+                rsp_url = urljoin(url, str(rsp.url))
+                logger.info('Request: {method} {url} {status} {ct}')
+                content = await rsp.read()
+                rsp.close()
+                return Response(rsp_url, content, rsp, status, ct)
 
     def _request(self):
         url = self.url
@@ -43,16 +37,10 @@ class Request(BaseRequest):
         func = getattr(requests, method)
         rsp = func(url, **kwargs)
         ct = rsp.headers['content-type']
-        if rsp.status_code >= 400 and rsp.status_code < 500:
-            raise IgnoreRequest(url)
-        if rsp.status_code == 200:
-            if re.search('html|json|text|xml|rss', ct, re.I):
-                return Response(urljoin(url, rsp.url), rsp.content, rsp)
-            else:
-                raise IgnoreRequest(url)
-        else:
-            logger.error('Request fail: {} {}'.format(url, rsp.status_code))
-            raise RetryRequest(url)
+        status = rsp.status_code
+        logger.info('Request: {method} {url} {status} {ct}')
+        rsp_url = urljoin(url, str(rsp.url))
+        return Response(rsp_url, rsp.content, rsp, status, ct)
 
     async def request(self):
         '''
@@ -73,6 +61,6 @@ class Request(BaseRequest):
         except aiohttp.client_exceptions.ClientError as e:
             logger.error("Request fail OsConnectionError: {} {}".format(
                 self.url, e))
-            raise IgnoreRequest(self.url)
+            raise IgnoreRequest()
         finally:
             self.request_time = time() - start_time
