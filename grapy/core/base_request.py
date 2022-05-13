@@ -1,5 +1,7 @@
 import json
 import re
+import hashlib
+import base64
 
 __all__ = ['BaseRequest']
 
@@ -97,3 +99,8 @@ class BaseRequest(object):
         >>> rsp = await req.request()
         '''
         raise NotImplementedError('you must rewrite at sub class')
+
+    def get_hash(self):
+        h = hashlib.sha256()
+        h.update(bytes(self))
+        return str(base64.urlsafe_b64encode((h.digest())), 'UTF-8').strip('=')

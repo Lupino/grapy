@@ -1,5 +1,4 @@
 from .core import BaseScheduler
-import hashlib
 import re
 from .utils import logger
 from .core.exceptions import IgnoreRequest, RetryRequest
@@ -10,11 +9,6 @@ re_url = re.compile('^https?://[^/]+')
 
 __all__ = ['Scheduler']
 
-
-def hash_req(req):
-    h = hashlib.sha256()
-    h.update(bytes(req))
-    return h.hexdigest()
 
 
 class Scheduler(BaseScheduler):
@@ -28,7 +22,7 @@ class Scheduler(BaseScheduler):
     async def push_req(self, req):
         if not re_url.match(req.url):
             return
-        key = hash_req(req)
+        key = req.get_hash()
         if req.unique and key in self._filter:
             return
 
