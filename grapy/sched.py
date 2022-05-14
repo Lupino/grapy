@@ -1,7 +1,7 @@
 from .core import BaseScheduler
 from .utils import logger
 from .core.exceptions import IgnoreRequest, RetryRequest
-from .core.item import dump_item, load_item
+from .core.item import load_item
 from asyncio_pool import AioPool
 from .request import Request
 
@@ -52,7 +52,7 @@ class PeriodicScheduler(BaseScheduler):
 
     async def push_item(self, item):
         key = item.get_hash()
-        await self._worker.submit_job('submit_item', key, dump_item(item))
+        await self._worker.submit_job('submit_item', key, bytes(item))
 
     async def submit_item(self, job):
         item = load_item(job.workload)

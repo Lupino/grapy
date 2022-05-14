@@ -5,26 +5,13 @@ from ..utils import import_module
 import base64
 import hashlib
 
-__all__ = ['Item', 'load_item', 'dump_item']
+__all__ = ['Item', 'load_item']
 
 
 class Item(object):
-    _null_char = '\x01'
-
-    _extra_field = {'name': 'extra', 'type': 'json'}
-
-    _fields = [{'name': 'extra', 'type': 'json'}]
-
     __slots__ = ['__dict__']
 
     def __init__(self, payload={}):
-
-        if self._extra_field not in self._fields:
-            self._fields.append(self._extra_field)
-
-        if not isinstance(payload, dict):
-            payload = self.unpack(payload)
-
         self.update(payload)
 
     def __getitem__(self, key, default=None):
@@ -83,76 +70,14 @@ class Item(object):
     def copy(self):
         return self.__dict__.copy()
 
-    def pack(self):
-        '''D.pack() -> a bytes object. pack item'''
-        payload = dict(self)
-        keys = list(map(lambda x: x['name'], self._fields))
-        tps = list(map(lambda x: x['type'], self._fields))
-        tps = dict(zip(keys, tps))
-
-        none_keys = list(filter(lambda x: not payload[x], payload.keys()))
-        list(map(payload.pop, none_keys))
-
-        other_keys = filter(lambda x: x not in keys, payload.keys())
-        other = dict(zip(other_keys, map(lambda x: payload[x], other_keys)))
-
-        payload[self._extra_field['name']] = other
-
-        def _pack(key):
-            val = payload.get(key, '')
-            tp = tps[key]
-
-            if val:
-                if tp == 'json':
-                    val = json.dumps(val)
-            else:
-                val = ''
-            if not isinstance(val, str):
-                val = str(val)
-            return val
-
-        return self._null_char.join(map(_pack, keys))
-
-    def unpack(self, payload):
-        '''unpack item'''
-        if isinstance(payload, bytes):
-            payload = str(payload, 'utf-8')
-
-        keys = list(map(lambda x: x['name'], self._fields))
-        tps = list(map(lambda x: x['type'], self._fields))
-        tps = dict(zip(keys, tps))
-
-        payload = payload.split(self._null_char)
-
-        def _unpack(pack):
-            key, val = pack
-            tp = tps[key]
-            if not val:
-                return key, val
-            if tp == 'json':
-                val = json.loads(val)
-            elif tp == 'int':
-                val = int(val)
-            elif tp == 'float':
-                val = float(val)
-            elif tp == 'bool':
-                val = bool(val)
-            return key, val
-
-        payload = dict(map(_unpack, zip(keys, payload)))
-
-        if payload.get(self._extra_field['name']):
-            other = payload.pop(self._extra_field['name'])
-            if isinstance(other, dict):
-                payload.update(other)
-
-        return payload
-
     def __str__(self):
         return json.dumps(self.__dict__, indent=2)
 
     def __bytes__(self):
-        return bytes(self.pack(), 'utf-8')
+        cls = self.__class__
+        name = re.search("'([^']+)'", str(cls)).group(1)
+        data = json.dumps(self.__dict__)
+        return bytes(f'{name}${data}', 'utf-8')
 
     def get_hash(self):
         h = hashlib.sha256()
@@ -160,22 +85,13 @@ class Item(object):
         return str(base64.urlsafe_b64encode((h.digest())), 'UTF-8').strip('=')
 
 
-NULL_CHAR = '\x02\x00\x00'
-
-
-def dump_item(klass, *args, **kwargs):
-    '''dump the Item'''
-    cls = klass.__class__
-    name = re.search("'([^']+)'", str(cls)).group(1)
-    if not isinstance(klass, Item):
-        raise ItemError(f'ItemError: {name} is not instance {__name__}.Item')
-    retval = NULL_CHAR.join([name, klass.pack()])
-    return retval
-
-
-def load_item(string):
+def load_item(payload):
     '''load the Item'''
-    name, data = string.split(NULL_CHAR)
+    if isinstance(payload, bytes):
+        payload = str(payload, 'utf-8')
+    idx = payload.find('$')
+    name = payload[:idx]
+    data = json.loads(payload[idx + 1:])
     klass = import_module(name, data)
     if not isinstance(klass, Item):
         raise ItemError(f'ItemError: {name} is not instance {__name__}.Item')
