@@ -166,19 +166,17 @@ NULL_CHAR = '\x02\x00\x00'
 def dump_item(klass, *args, **kwargs):
     '''dump the Item'''
     cls = klass.__class__
-    cls_name = re.search("'([^']+)'", str(cls)).group(1)
+    name = re.search("'([^']+)'", str(cls)).group(1)
     if not isinstance(klass, Item):
-        raise ItemError('ItemError: %s is not instance crawl.core.item.Item' %
-                        cls_name)
-    retval = NULL_CHAR.join([cls_name, klass.pack()])
+        raise ItemError(f'ItemError: {name} is not instance {__name__}.Item')
+    retval = NULL_CHAR.join([name, klass.pack()])
     return retval
 
 
 def load_item(string):
     '''load the Item'''
-    cls_name, data = string.split(NULL_CHAR)
-    klass = import_module(cls_name, data)
+    name, data = string.split(NULL_CHAR)
+    klass = import_module(name, data)
     if not isinstance(klass, Item):
-        raise ItemError('ItemError: %s is not instance crawl.core.item.Item' %
-                        cls_name)
+        raise ItemError(f'ItemError: {name} is not instance {__name__}.Item')
     return klass
