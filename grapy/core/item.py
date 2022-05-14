@@ -2,7 +2,8 @@ import json
 import re
 from .exceptions import ItemError
 from ..utils import import_module
-from uuid import uuid1 as uuid
+import base64
+import hashlib
 
 __all__ = ['Item', 'load_item', 'dump_item']
 
@@ -153,9 +154,10 @@ class Item(object):
     def __bytes__(self):
         return bytes(self.pack(), 'utf-8')
 
-    @property
-    def unique(self):
-        return str(uuid())
+    def get_hash(self):
+        h = hashlib.sha256()
+        h.update(bytes(self))
+        return str(base64.urlsafe_b64encode((h.digest())), 'UTF-8').strip('=')
 
 
 NULL_CHAR = '\x02\x00\x00'
