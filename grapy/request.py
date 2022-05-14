@@ -25,7 +25,7 @@ class Request(BaseRequest):
                 ct = rsp.headers.get('content-type', '')
                 status = rsp.status
                 rsp_url = urljoin(url, str(rsp.url))
-                logger.info('Request: {method} {url} {status} {ct}')
+                logger.info(f'Request: {method} {url} {status} {ct}')
                 content = await rsp.read()
                 rsp.close()
                 return Response(rsp_url, content, rsp, status, ct)
@@ -38,7 +38,7 @@ class Request(BaseRequest):
         rsp = func(url, **kwargs)
         ct = rsp.headers['content-type']
         status = rsp.status_code
-        logger.info('Request: {method} {url} {status} {ct}')
+        logger.info(f'Request: {method} {url} {status} {ct}')
         rsp_url = urljoin(url, str(rsp.url))
         return Response(rsp_url, rsp.content, rsp, status, ct)
 
