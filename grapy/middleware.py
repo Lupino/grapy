@@ -31,8 +31,43 @@ class RequestFilter():
     def before_push_request(self, req):
         if not re_url.match(req.url):
             raise IgnoreRequest()
+
+        if not req.unique:
+            return
+
         key = req.get_hash()
-        if req.unique and key in self.filter:
+        if key in self.filter:
             raise IgnoreRequest()
 
         self.filter.add(key)
+
+
+class PeriodicRequestFilter(RequestFilter):
+    async def before_push_request(self, req):
+        if not req.unique:
+            return
+        key = req.get_hash()
+
+        for try_count in range(self._try_count):
+            exists = 'True'
+            try:
+                exists = await self._worker.run_job('bloom_filter', key)
+            except Exception:
+                continue
+
+            if exists == 'True':
+                raise IgnoreRequest()
+            if exists == 'False':
+                break
+
+    async def bloom_filter(self, job):
+        exists = job.name in self.filter
+        self.filter.add(job.name)
+
+        await job.done(str(exists))
+
+    async def init(self, worker, try_count=10, filter=True):
+        self._worker = worker
+        self._try_count = try_count
+        if filter:
+            await self._worker.add_func('bloom_filter', self.bloom_filter)
