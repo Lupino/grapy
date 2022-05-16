@@ -4,6 +4,7 @@ from .core.exceptions import IgnoreRequest, RetryRequest
 from .core.item import load_item
 from asyncio_pool import AioPool
 from .request import Request
+from asyncio import sleep
 
 __all__ = ['Scheduler', 'PeriodicScheduler']
 
@@ -34,7 +35,14 @@ class Scheduler(BaseScheduler):
 class PeriodicScheduler(BaseScheduler):
     async def push_req(self, req):
         key = req.get_hash()
-        await self._worker.submit_job('submit_req', key, bytes(req))
+        data = bytes(req)
+        for i in range(self._retry_count):
+            await sleep(i * 0.01)
+            try:
+                await self._worker.submit_job('submit_req', key, data)
+                break
+            except Exception as e:
+                logger.exception(e)
 
     async def submit_req(self, job):
         req = Request.build(job.workload)
@@ -52,7 +60,14 @@ class PeriodicScheduler(BaseScheduler):
 
     async def push_item(self, item):
         key = item.get_hash()
-        await self._worker.submit_job('submit_item', key, bytes(item))
+        data = bytes(item)
+        for i in range(self._retry_count):
+            await sleep(i * 0.01)
+            try:
+                await self._worker.submit_job('submit_item', key, data)
+                break
+            except Exception as e:
+                logger.exception(e)
 
     async def submit_item(self, job):
         item = load_item(job.workload)
@@ -63,8 +78,10 @@ class PeriodicScheduler(BaseScheduler):
                    worker,
                    submit_item=True,
                    lock_name=None,
-                   lock_count=None):
+                   lock_count=None,
+                   retry_count=10):
         self._worker = worker
+        self._retry_count = retry_count
         if lock_name and lock_count > 0:
 
             async def do_with_lock(job):
