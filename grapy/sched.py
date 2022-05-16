@@ -5,7 +5,7 @@ from .core.item import load_item
 from asyncio_pool import AioPool
 from .request import Request
 
-__all__ = ['Scheduler']
+__all__ = ['Scheduler', 'PeriodicScheduler']
 
 
 class Scheduler(BaseScheduler):
@@ -59,8 +59,22 @@ class PeriodicScheduler(BaseScheduler):
         await BaseScheduler.submit_item(self, item)
         await job.done()
 
-    async def init(self, worker, submit_item=True):
+    async def init(self,
+                   worker,
+                   submit_item=True,
+                   lock_name=None,
+                   lock_count=None):
         self._worker = worker
-        await self._worker.add_func('submit_req', self.submit_req)
+        if lock_name and lock_count > 0:
+
+            async def do_with_lock(job):
+                async def do_task():
+                    await self.submit_req(job)
+
+                await job.with_lock(lock_name, lock_count, do_task)
+
+            await self._worker.add_func('submit_req', do_with_lock)
+        else:
+            await self._worker.add_func('submit_req', self.submit_req)
         if submit_item:
             await self._worker.add_func('submit_item', self.submit_item)
