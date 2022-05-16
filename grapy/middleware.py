@@ -49,15 +49,15 @@ class PeriodicRequestFilter(RequestFilter):
         key = req.get_hash()
 
         for try_count in range(self._try_count):
-            exists = 'True'
+            exists = b'True'
             try:
                 exists = await self._worker.run_job('bloom_filter', key)
             except Exception:
                 continue
 
-            if exists == 'True':
+            if exists == b'True':
                 raise IgnoreRequest()
-            if exists == 'False':
+            if exists == b'False':
                 break
 
     async def bloom_filter(self, job):
