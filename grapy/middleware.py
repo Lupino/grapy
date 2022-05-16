@@ -2,6 +2,7 @@ from .core.exceptions import IgnoreRequest, RetryRequest
 from .utils import after_request
 import re
 from bloom_filter2 import BloomFilter
+from asyncio import sleep
 
 
 @after_request
@@ -49,6 +50,7 @@ class PeriodicRequestFilter(RequestFilter):
         key = req.get_hash()
 
         for try_count in range(self._try_count):
+            await sleep(try_count * 0.01)
             exists = b'True'
             try:
                 exists = await self._worker.run_job('bloom_filter', key)
