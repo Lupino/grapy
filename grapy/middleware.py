@@ -49,8 +49,8 @@ class PeriodicRequestFilter(RequestFilter):
             return
         key = req.get_hash()
 
-        for try_count in range(self._try_count):
-            await sleep(try_count * 0.01)
+        for retry_count in range(self._retry_count):
+            await sleep(retry_count * 0.01)
             exists = b'True'
             try:
                 exists = await self._worker.run_job('bloom_filter', key)
@@ -68,8 +68,8 @@ class PeriodicRequestFilter(RequestFilter):
 
         await job.done(str(exists))
 
-    async def init(self, worker, try_count=10, filter=True):
+    async def init(self, worker, retry_count=10, filter=True):
         self._worker = worker
-        self._try_count = try_count
+        self._retry_count = retry_count
         if filter:
             await self._worker.add_func('bloom_filter', self.bloom_filter)
