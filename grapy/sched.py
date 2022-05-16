@@ -76,22 +76,12 @@ class PeriodicScheduler(BaseScheduler):
 
     async def init(self,
                    worker,
+                   submit_req=True,
                    submit_item=True,
-                   lock_name=None,
-                   lock_count=None,
                    retry_count=10):
         self._worker = worker
         self._retry_count = retry_count
-        if lock_name and lock_count > 0:
-
-            async def do_with_lock(job):
-                async def do_task():
-                    await self.submit_req(job)
-
-                await job.with_lock(lock_name, lock_count, do_task)
-
-            await self._worker.add_func('submit_req', do_with_lock)
-        else:
+        if submit_req:
             await self._worker.add_func('submit_req', self.submit_req)
         if submit_item:
             await self._worker.add_func('submit_item', self.submit_item)
