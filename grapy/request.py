@@ -59,8 +59,7 @@ class Request(BaseRequest):
             start_time = time()
             return self._request()
         except aiohttp.client_exceptions.ClientError as e:
-            logger.error("Request fail OsConnectionError: {} {}".format(
-                self.url, e))
-            raise IgnoreRequest()
+            logger.error(f"Request fail OsConnectionError: {self.url} {e}")
+            raise RetryRequest()
         finally:
             self.request_time = time() - start_time
