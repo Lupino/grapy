@@ -26,6 +26,8 @@ class Scheduler(BaseScheduler):
             req.unique = False
             await self.push_req(req)
         except Exception as e:
+            req.unique = False
+            await self.push_req(req)
             logger.exception(e)
 
     async def join(self):
@@ -51,10 +53,10 @@ class PeriodicScheduler(BaseScheduler):
         except IgnoreRequest:
             pass
         except RetryRequest:
-            req.unique = False
             return await job.sched_later(job.payload.count + 10, 1)
         except Exception as e:
             logger.exception(e)
+            return await job.sched_later(job.payload.count + 10, 1)
 
         await job.done()
 
