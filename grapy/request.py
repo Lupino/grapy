@@ -3,7 +3,7 @@ from .utils import logger
 from urllib.parse import urljoin
 from .response import Response
 from .core import BaseRequest
-from .core.exceptions import IgnoreRequest
+from .core.exceptions import RetryRequest
 import requests
 from time import time
 
