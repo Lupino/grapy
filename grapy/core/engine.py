@@ -156,6 +156,7 @@ class Engine(object):
     async def start_request(self):
         async def push_req(req, spider):
             req.spider = spider.name
+            req.unique = False
             await self.push_req(req)
 
         for spider in self.spiders.values():
