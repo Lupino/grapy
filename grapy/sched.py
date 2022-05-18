@@ -1,12 +1,14 @@
 from .core import BaseScheduler
-from .utils import logger
 from .core.exceptions import IgnoreRequest, RetryRequest
 from .core.item import load_item
 from asyncio_pool import AioPool
 from .request import Request
 from asyncio import sleep
+import logging
 
 __all__ = ['Scheduler', 'PeriodicScheduler']
+
+logger = logging.getLogger(__name__)
 
 
 class Scheduler(BaseScheduler):

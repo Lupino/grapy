@@ -1,13 +1,15 @@
 import aiohttp
-from .utils import logger
 from urllib.parse import urljoin
 from .response import Response
 from .core import BaseRequest
 from .core.exceptions import RetryRequest
 import requests
 from time import time
+import logging
 
 __all__ = ['Request']
+
+logger = logging.getLogger(__name__)
 
 
 class Request(BaseRequest):
@@ -25,7 +27,7 @@ class Request(BaseRequest):
                 ct = rsp.headers.get('content-type', '')
                 status = rsp.status
                 rsp_url = urljoin(url, str(rsp.url))
-                logger.info(f'Request: {method} {url} {status} {ct}')
+                logger.info(f'{method.upper()} {url} {status} {ct}')
                 content = await rsp.read()
                 rsp.close()
                 return Response(rsp_url, content, rsp, status, ct)
@@ -38,7 +40,7 @@ class Request(BaseRequest):
         rsp = func(url, **kwargs)
         ct = rsp.headers['content-type']
         status = rsp.status_code
-        logger.info(f'Request: {method} {url} {status} {ct}')
+        logger.info(f'{method.upper()} {url} {status} {ct}')
         rsp_url = urljoin(url, str(rsp.url))
         return Response(rsp_url, rsp.content, rsp, status, ct)
 
@@ -59,7 +61,7 @@ class Request(BaseRequest):
             start_time = time()
             return self._request()
         except aiohttp.client_exceptions.ClientError as e:
-            logger.error(f"Request fail OsConnectionError: {self.url} {e}")
+            logger.error(f"OsConnectionError: {self.url} {e}")
             raise RetryRequest()
         finally:
             self.request_time = time() - start_time

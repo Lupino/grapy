@@ -5,11 +5,11 @@ import os.path
 from .core.base_spider import BaseSpider
 
 __all__ = [
-    'import_module', 'logger', 'import_spiders', 'middleware',
-    'before_push_request', 'before_request', 'after_request', 'make_spider'
+    'import_module', 'import_spiders', 'middleware', 'make_spider',
+    'before_push_request', 'before_request', 'after_request'
 ]
 
-logger = logging.getLogger('grapy')
+logger = logging.getLogger(__name__)
 
 
 def import_module(module_name, *args, **kwargs):

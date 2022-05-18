@@ -1,10 +1,12 @@
 import asyncio
 from .base_request import BaseRequest
 from .item import Item
-from ..utils import logger
 from .exceptions import EngineError, IgnoreRequest, ItemError, DropItem
+import logging
 
 __all__ = ['Engine']
+
+logger = logging.getLogger(__name__)
 
 
 class Engine(object):
@@ -113,9 +115,6 @@ class Engine(object):
             if isinstance(item, BaseRequest):
                 if item.spider is None:
                     item.spider = spider.name
-                logger.debug(
-                    'Find url[{}] on requset[{}] by spider[{}]'.format(
-                        item.url, rsp.url, spider.name))
 
                 item.group = rsp.req.group
                 item.ref = rsp.url
