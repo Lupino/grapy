@@ -73,11 +73,9 @@ class Engine(object):
         for mid in self.middlewares:
             if hasattr(mid, name):
                 func = getattr(mid, name)
-                new_obj = None
-                if asyncio.iscoroutinefunction(func):
-                    new_obj = await func(obj)
-                else:
-                    new_obj = func(obj)
+                new_obj = func(obj)
+                if asyncio.iscoroutine(new_obj):
+                    new_obj = await new_obj
 
                 if new_obj is not None:
                     obj = new_obj
@@ -91,16 +89,12 @@ class Engine(object):
         for pip in pipelines:
             new_item = None
             if hasattr(pip, 'process'):
-                if asyncio.iscoroutinefunction(pip.process):
-                    new_item = await pip.process(item)
-                else:
-                    new_item = pip.process(item)
+                new_item = pip.process(item)
             elif str(type(pip)) == "<class 'function'>":
-                if asyncio.iscoroutinefunction(pip):
-                    new_item = await pip(item)
-                else:
-                    new_item = pip(item)
+                new_item = pip(item)
 
+            if asyncio.iscoroutine(new_item):
+                new_item = await new_item
             if new_item is not None:
                 item = new_item
 
@@ -126,8 +120,8 @@ class Engine(object):
                 raise EngineError('Unknow type')
 
         if asyncio.iscoroutinefunction(func):
-            args.append(process_response_item)
-            await func(rsp, *args)
+            async for item in func(rsp, *args):
+                await process_response_item(item)
         else:
             items = func(rsp, *args)
             if items is None:
@@ -159,11 +153,12 @@ class Engine(object):
             await self.push_req(req)
 
         for spider in self.spiders.values():
-            if asyncio.iscoroutinefunction(spider.start_request):
-                await spider.start_request(lambda req: push_req(req, spider))
-            else:
-                for req in spider.start_request():
-                    await push_req(req, spider)
+            reqs = spider.start_request()
+            if asyncio.iscoroutine(reqs):
+                reqs = await reqs
+
+            for req in reqs:
+                await push_req(req, spider)
 
     async def start(self):
         await self.start_request()
