@@ -116,6 +116,9 @@ class Engine(object):
                 await self.push_req(item)
             elif isinstance(item, Item):
                 await self.push_item(item)
+            elif isinstance(item, list):
+                for sub in item:
+                    await process_response_item(sub)
             else:
                 raise EngineError('Unknow type')
 
