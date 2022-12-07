@@ -1,6 +1,12 @@
 import re
 from bs4 import BeautifulSoup
 import json
+from io import BytesIO
+
+try:
+    import pdfplumber
+except Exception:
+    pdfplumber = None
 
 RE_XML = re.compile('<?xml.+encoding=["\']([^\'"]+?)["\'].+?>', re.I)
 RE_HTML = re.compile('<meta.+charset=["\']([^\'"]+?)[\'"].+>', re.I)
@@ -11,7 +17,7 @@ __all__ = ['Response']
 class Response(object):
 
     __slots__ = [
-        'url', 'raw', 'encoding', 'content', '_soup', 'req', 'headers',
+        'url', 'raw', 'encoding', 'content', '_soup', '_pdf', 'req', 'headers',
         'status', 'content_type'
     ]
 
@@ -19,6 +25,7 @@ class Response(object):
         self.raw = raw
         self.url = url
         self._soup = None
+        self._pdf = None
         self.encoding = None
         self.content = content
         self.req = None
@@ -60,6 +67,7 @@ class Response(object):
         return self._soup
 
     def _get_charset(self, content):
+
         def map_charset(charset):
             if charset:
                 charset = charset.upper()
@@ -127,3 +135,15 @@ class Response(object):
         """
         soup = self.soup
         return soup.select(selector, namespaces, limit, **kwargs)
+
+    @property
+    def pdf(self):
+        '''return the instance of PDF'''
+        if pdfplumber is None:
+            raise Exception('''pdfplumber is required.
+                            install:
+                                pip install pdfplumber''')
+        if self._pdf is None:
+            content = self.content
+            self._pdf = pdfplumber.open(BytesIO(content))
+        return self._pdf
