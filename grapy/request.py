@@ -58,7 +58,7 @@ class Request(BaseRequest):
         start_time = time()
 
         try:
-            cached = getattr(self, 'cached')
+            cached = getattr(self, 'cached', None)
             if cached:
                 return cached
 
