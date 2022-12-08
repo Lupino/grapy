@@ -16,6 +16,7 @@ class Request(BaseRequest):
     '''
     the Request object
     '''
+
     async def _aio_request(self):
         method = self.method.lower()
         kwargs = self.kwargs.copy()
@@ -44,6 +45,9 @@ class Request(BaseRequest):
         rsp_url = urljoin(url, str(rsp.url))
         return Response(rsp_url, rsp.content, rsp, status, ct)
 
+    def set_cached(self, content, content_type):
+        self.cached = Response(self.url, content, None, 200, content_type)
+
     async def request(self):
         '''
         do request
@@ -54,6 +58,10 @@ class Request(BaseRequest):
         start_time = time()
 
         try:
+            cached = getattr(self, 'cached')
+            if cached:
+                return cached
+
             return (await self._aio_request())
         except (aiohttp.http_exceptions.BadHttpMessage,
                 aiohttp.http_exceptions.BadStatusLine, ValueError) as exc:
