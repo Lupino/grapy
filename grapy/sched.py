@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Scheduler(BaseScheduler):
+
     def __init__(self, size=10):
         BaseScheduler.__init__(self)
         self._pool = AioPool(size=size)
@@ -37,6 +38,7 @@ class Scheduler(BaseScheduler):
 
 
 class PeriodicScheduler(BaseScheduler):
+
     async def push_req(self, req):
         key = req.get_hash()
         data = bytes(req)

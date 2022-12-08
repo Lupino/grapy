@@ -23,6 +23,7 @@ re_url = re.compile('^https?://[^/]+')
 
 
 class RequestFilter():
+
     def __init__(self, filter=None):
         if filter is None:
             filter = BloomFilter(max_elements=10000, error_rate=0.1)
@@ -44,6 +45,7 @@ class RequestFilter():
 
 
 class PeriodicRequestFilter(RequestFilter):
+
     async def before_push_request(self, req):
         if not req.unique:
             return

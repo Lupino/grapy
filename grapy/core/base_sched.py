@@ -4,6 +4,7 @@ __all__ = ["BaseScheduler"]
 
 
 class BaseScheduler(object):
+
     def __init__(self):
         self.engine = None
         self.is_running = False

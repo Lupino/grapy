@@ -150,6 +150,7 @@ class Engine(object):
             logger.exception(e)
 
     async def start_request(self):
+
         async def push_req(req, spider):
             req.spider = spider.name
             req.unique = False

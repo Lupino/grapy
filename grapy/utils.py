@@ -81,6 +81,7 @@ class Middleware(object):
 
 
 def middleware(name):
+
     def _middleware(func):
         m = Middleware()
         setattr(m, name, func)
@@ -99,6 +100,7 @@ def make_spider(func_name=None, start_urls=[]):
     @param func_name the spider name
     @param start_urls Request list
     '''
+
     def _spider(func):
         name = func_name
         if name is None:

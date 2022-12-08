@@ -47,6 +47,7 @@ class BaseRequest(object):
         '''
         pack the Request object on bytes
         '''
+
         def _pack(key):
             val = getattr(self, key, '')
             if val not in self._default:
