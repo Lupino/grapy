@@ -14,6 +14,26 @@ RE_HTML = re.compile('<meta.+charset=["\']([^\'"]+?)[\'"].+>', re.I)
 __all__ = ['Response']
 
 
+def safe_get_json(content):
+    idx0 = content.find(b'{')
+    idx1 = content.find(b'[')
+
+    if idx0 > -1 and idx1 > -1:
+        if idx0 < idx1:
+            return content[idx0:]
+        else:
+            return content[idx1:]
+
+    if idx0 > -1:
+        return content[idx0:]
+
+    if idx1 > -1:
+        return content[idx1:]
+
+    return content
+
+
+
 class Response(object):
 
     __slots__ = [
@@ -55,7 +75,8 @@ class Response(object):
     def json(self):
         '''return json document, maybe raise'''
         data = self.content
-        data = json.loads(data.decode('utf-8'))
+        data = safe_get_json(data)
+        data = json.loads(data.decode('utf-8', errors='ignore'))
         return data
 
     @property
