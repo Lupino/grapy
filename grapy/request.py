@@ -21,9 +21,11 @@ class Request(BaseRequest):
         method = self.method.lower()
         kwargs = self.kwargs.copy()
 
+        connector = kwargs.pop('connector', None)
+
         url = self.url
 
-        async with aiohttp.ClientSession() as client:
+        async with aiohttp.ClientSession(connector=connector) as client:
             async with client.request(method, url, **kwargs) as rsp:
                 ct = rsp.headers.get('content-type', '')
                 status = rsp.status
