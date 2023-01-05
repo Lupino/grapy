@@ -5,6 +5,7 @@ from asyncio_pool import AioPool
 from .request import Request
 from asyncio import sleep
 import logging
+from time import time
 
 __all__ = ['Scheduler', 'PeriodicScheduler']
 
@@ -70,7 +71,16 @@ class PeriodicScheduler(BaseScheduler):
         for i in range(self._retry_count):
             await sleep(i * 0.01)
             try:
-                await self._worker.submit_job('submit_item', key, data)
+
+                sched_at = int(time())
+                later = getattr(item, 'later', None)
+                if isinstance(later, int):
+                    sched_at += later
+
+                await self._worker.submit_job('submit_item',
+                                              key,
+                                              data,
+                                              sched_at=sched_at)
                 break
             except Exception as e:
                 logger.exception(e)
