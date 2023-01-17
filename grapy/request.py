@@ -21,7 +21,11 @@ class Request(BaseRequest):
         method = self.method.lower()
         kwargs = self.kwargs.copy()
 
-        connector = kwargs.pop('connector', None)
+        connector = getattr(self, 'connector', None)
+
+        proxy = getattr(self, 'proxy', None)
+        if proxy:
+            kwargs['proxy'] = proxy
 
         url = self.url
 
@@ -39,9 +43,12 @@ class Request(BaseRequest):
         url = self.url
         method = self.method.lower()
         kwargs = self.kwargs.copy()
-
-        kwargs.pop('connector', None)
-
+        proxy = getattr(self, 'proxy', None)
+        if proxy:
+            kwargs['proxies'] = {
+                'http': proxy_host,
+                'https': proxy_host,
+            }
         func = getattr(requests, method)
         rsp = func(url, **kwargs)
         ct = rsp.headers['content-type']

@@ -33,7 +33,6 @@ def safe_get_json(content):
     return content
 
 
-
 class Response(object):
 
     __slots__ = [

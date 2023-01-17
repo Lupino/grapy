@@ -15,7 +15,8 @@ def check_response_status(rsp):
 
 @after_request
 def check_response_content_type(rsp):
-    if not re.search('html|json|text|xml|rss|pdf|javascript', rsp.content_type, re.I):
+    if not re.search('html|json|text|xml|rss|pdf|javascript', rsp.content_type,
+                     re.I):
         raise IgnoreRequest()
 
 
