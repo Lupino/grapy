@@ -39,6 +39,9 @@ class Request(BaseRequest):
         url = self.url
         method = self.method.lower()
         kwargs = self.kwargs.copy()
+
+        kwargs.pop('connector', None)
+
         func = getattr(requests, method)
         rsp = func(url, **kwargs)
         ct = rsp.headers['content-type']
@@ -65,13 +68,12 @@ class Request(BaseRequest):
                 return cached
 
             return (await self._aio_request())
-        except (aiohttp.http_exceptions.BadHttpMessage,
-                aiohttp.http_exceptions.BadStatusLine, ValueError) as exc:
-            logger.error(str(exc) + ': ' + self.url)
-            start_time = time()
-            return self._request()
         except aiohttp.client_exceptions.ClientError as e:
             logger.error(f"OsConnectionError: {self.url} {e}")
             raise RetryRequest()
+        except Exception as exc:
+            logger.error(str(exc) + ': ' + self.url)
+            start_time = time()
+            return self._request()
         finally:
             self.request_time = time() - start_time
