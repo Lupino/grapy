@@ -46,8 +46,8 @@ class Request(BaseRequest):
         proxy = getattr(self, 'proxy', None)
         if proxy:
             kwargs['proxies'] = {
-                'http': proxy_host,
-                'https': proxy_host,
+                'http': proxy,
+                'https': proxy,
             }
         func = getattr(requests, method)
         rsp = func(url, **kwargs)
