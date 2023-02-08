@@ -11,7 +11,7 @@ class BaseRequest(object):
 
     _keys = [
         'url', 'method', 'callback', 'callback_args', 'kwargs', 'spider',
-        'req_id', 'group'
+        'req_id', 'group', 'sync', 'timeout'
     ]
     _default = [{}, (), 'get', None, [], 'default']
 
@@ -21,7 +21,8 @@ class BaseRequest(object):
 
     __slots__ = [
         'url', 'method', 'callback', 'callback_args', 'kwargs', 'spider',
-        'unique', 'req_id', 'group', 'engine', 'request_time'
+        'unique', 'req_id', 'group', 'engine', 'request_time', 'sync',
+        'timeout'
     ]
 
     def __init__(self,
@@ -30,6 +31,8 @@ class BaseRequest(object):
                  callback='parse',
                  callback_args=[],
                  spider=None,
+                 sync=False,
+                 timeout=60,
                  **kwargs):
         self.url = re.sub('#.+', '', url)
         self.method = method
@@ -42,6 +45,8 @@ class BaseRequest(object):
         self.group = 0
         self.engine = None
         self.request_time = 0
+        self.sync = sync
+        self.timeout = timeout
 
     def pack(self):
         '''
