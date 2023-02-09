@@ -43,13 +43,18 @@ class PeriodicScheduler(BaseScheduler):
     async def push_req(self, req):
         key = req.get_hash()
         data = bytes(req)
+        pushed = False
         for i in range(self._retry_count):
             await sleep(i * 0.01)
             try:
                 await self._worker.submit_job('submit_req', key, data)
+                pushed = True
                 break
             except Exception as e:
                 logger.exception(e)
+
+        if not pushed:
+            raise Exception('PeriodicScheduler.push_req failed')
 
     async def submit_req(self, job):
         req = Request.build(job.workload)
@@ -68,6 +73,7 @@ class PeriodicScheduler(BaseScheduler):
     async def push_item(self, item):
         key = item.get_hash()
         data = bytes(item)
+        pushed = False
         for i in range(self._retry_count):
             await sleep(i * 0.01)
             try:
@@ -81,9 +87,13 @@ class PeriodicScheduler(BaseScheduler):
                                               key,
                                               data,
                                               sched_at=sched_at)
+                pushed = True
                 break
             except Exception as e:
                 logger.exception(e)
+
+        if not pushed:
+            raise Exception('PeriodicScheduler.push_item failed')
 
     async def submit_item(self, job):
         item = load_item(job.workload)
