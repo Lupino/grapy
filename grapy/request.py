@@ -30,7 +30,7 @@ class Request(BaseRequest):
 
         url = self.url
 
-        timeout = aiohttp.ClientTimeout(total=self.timeout)
+        timeout = aiohttp.ClientTimeout(total=int(self.timeout))
         async with aiohttp.ClientSession(connector=connector,
                                          timeout=timeout) as client:
             async with client.request(method, url, **kwargs) as rsp:
@@ -53,7 +53,7 @@ class Request(BaseRequest):
                 'https': proxy,
             }
         func = getattr(requests, method)
-        rsp = func(url, timeout=self.timeout, **kwargs)
+        rsp = func(url, timeout=int(self.timeout), **kwargs)
         ct = rsp.headers['content-type']
         status = rsp.status_code
         logger.info(f'{method.upper()} {url} {status} {ct}')
