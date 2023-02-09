@@ -6,6 +6,7 @@ from .core.exceptions import RetryRequest
 import requests
 from time import time
 import logging
+import anyio
 
 __all__ = ['Request']
 
@@ -77,15 +78,15 @@ class Request(BaseRequest):
                 return cached
 
             if self.sync:
-                return self._request()
+                return await anyio.to_thread.run_sync(self._request)
 
-            return (await self._aio_request())
+            return await self._aio_request()
         except aiohttp.client_exceptions.ClientError as e:
             logger.error(f"OsConnectionError: {self.url} {e}")
             raise RetryRequest()
         except Exception as exc:
             logger.error(str(exc) + ': ' + self.url)
             start_time = time()
-            return self._request()
+            return await anyio.to_thread.run_sync(self._request)
         finally:
             self.request_time = time() - start_time
