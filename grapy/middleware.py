@@ -82,7 +82,7 @@ class AssignHeaderByText():
 
     def __init__(self, text):
         headers = {}
-        for line in headers_text.split('\n'):
+        for line in text.split('\n'):
             line = line.strip()
             if not line:
                 continue
