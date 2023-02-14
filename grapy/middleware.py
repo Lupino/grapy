@@ -76,3 +76,31 @@ class PeriodicRequestFilter(RequestFilter):
         self._retry_count = retry_count
         if filter:
             await self._worker.add_func('bloom_filter', self.bloom_filter)
+
+
+class AssignHeaderByText():
+
+    def __init__(self, text):
+        headers = {}
+        for line in headers_text.split('\n'):
+            line = line.strip()
+            if not line:
+                continue
+
+            if line[0] == ':':
+                continue
+
+            if line[0] == '#':
+                continue
+
+            v = line.split(':', 1)
+
+            headers[v[0].strip()] = v[1].strip()
+
+        self.headers = headers
+
+    def before_request(self, req):
+        if not req.kwargs.get('headers'):
+            req.kwargs['headers'] = {}
+
+        req.kwargs['headers'].update(self.headers)
