@@ -48,7 +48,7 @@ class Response(object):
         self.encoding = None
         self.content = content
         self.req = None
-        self.headers = {} if raw is None else raw.headers
+        self.headers = {} if raw is None else getattr(raw, 'headers', {})
         self.status = status
         self.content_type = content_type
 
