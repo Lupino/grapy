@@ -15,7 +15,7 @@ requires = [
 
 setup(
     name='grapy',
-    version='0.1.11',
+    version='0.2.0',
     description='''Grapy, a fast high-level screen scraping and web crawling
     framework for Python 3.3 or later base on asyncio.''',
     author='Li Meng Jun',

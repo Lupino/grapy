@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "grapy"
+version = "0.2.0"
+authors = [
+    {name = "Li Meng Jun", email = "lmjubuntu@gmail.com"},
+]
+description = "Grapy, a fast high-level screen scraping and web crawling framework for Python 3.3 or later base on asyncio."
+readme = "README.md"
+requires-python = ">=3.7"
+# keywords = ["one", "two"]
+license = {text = "MIT"}
+classifiers = [
+    "Framework :: Grapy",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    'asyncio', 'aiohttp', 'beautifulsoup4', 'requests', 'asyncio-pool',
+    'bloom-filter2'
+]
+
+[tool.setuptools]
+packages = [
+    "grapy",
+    "grapy.core",
+]
