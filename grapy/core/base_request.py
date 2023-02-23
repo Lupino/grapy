@@ -11,7 +11,7 @@ class BaseRequest(object):
 
     _keys = [
         'url', 'method', 'callback', 'callback_args', 'kwargs', 'spider',
-        'req_id', 'group', 'sync', 'timeout'
+        'req_id', 'group', 'sync', 'timeout', 'hash'
     ]
     _default = [{}, (), 'get', None, [], 'default']
 
@@ -22,7 +22,7 @@ class BaseRequest(object):
     __slots__ = [
         'url', 'method', 'callback', 'callback_args', 'kwargs', 'spider',
         'unique', 'req_id', 'group', 'engine', 'request_time', 'sync',
-        'timeout'
+        'timeout', 'hash'
     ]
 
     def __init__(self,
@@ -33,6 +33,7 @@ class BaseRequest(object):
                  spider=None,
                  sync=False,
                  timeout=60,
+                 hash=None,
                  **kwargs):
         self.url = re.sub('#.+', '', url)
         self.method = method
@@ -47,6 +48,7 @@ class BaseRequest(object):
         self.request_time = 0
         self.sync = sync
         self.timeout = timeout
+        self.hash = hash
 
     def pack(self):
         '''
@@ -107,6 +109,9 @@ class BaseRequest(object):
         raise NotImplementedError('you must rewrite at sub class')
 
     def get_hash(self):
-        h = hashlib.sha256()
-        h.update(bytes(self))
-        return str(base64.urlsafe_b64encode((h.digest())), 'UTF-8').strip('=')
+        if not self.hash:
+            h = hashlib.sha256()
+            h.update(bytes(self))
+            self.hash = str(base64.urlsafe_b64encode((h.digest())), 'UTF-8')
+
+        return self.hash
