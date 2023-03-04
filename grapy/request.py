@@ -54,7 +54,7 @@ class Request(BaseRequest):
             }
         func = getattr(requests, method)
         rsp = func(url, timeout=int(self.timeout), **kwargs)
-        ct = rsp.headers['content-type']
+        ct = rsp.headers.get('content-type', '')
         status = rsp.status_code
         logger.info(f'{method.upper()} {url} {status} {ct}')
         rsp_url = urljoin(url, str(rsp.url))
