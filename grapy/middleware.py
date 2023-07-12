@@ -100,7 +100,11 @@ class AssignHeaderByText():
         self.headers = headers
 
     def before_request(self, req):
-        if not req.kwargs.get('headers'):
-            req.kwargs['headers'] = {}
+        headers = req.kwargs.get('headers')
+        if not isinstance(headers, dict):
+            headers = {}
 
-        req.kwargs['headers'].update(self.headers)
+        new_headers = self.headers.copy()
+        new_headers.update(headers)
+
+        req.kwargs['headers'] = new_headers
