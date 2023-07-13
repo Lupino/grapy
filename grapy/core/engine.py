@@ -3,6 +3,7 @@ from .base_request import BaseRequest
 from .item import Item
 from .exceptions import EngineError, IgnoreRequest, ItemError, DropItem
 import logging
+from time import time
 
 __all__ = ['Engine']
 
@@ -11,13 +12,14 @@ logger = logging.getLogger(__name__)
 
 class Engine(object):
 
-    __slots__ = ['pipelines', 'spiders', 'middlewares', 'sched']
+    __slots__ = ['pipelines', 'spiders', 'middlewares', 'sched', 'event_fun']
 
     def __init__(self):
         self.pipelines = []
         self.spiders = {}
         self.middlewares = []
         self.sched = None
+        self.event_fun = []
 
     def set_spiders(self, spiders):
         self.spiders = {}
@@ -57,17 +59,57 @@ class Engine(object):
         self.sched = sched
         self.sched.engine = self
 
+    def add_event(self, func):
+        self.event_fun.append(func)
+
+    async def emit(self, event_name, *args, **kwargs):
+        for event in self.event_fun:
+            ret = event(event_name, *args, **kwargs)
+            if asyncio.iscoroutine(ret):
+                await ret
+
     async def process(self, req):
+        start_time = time()
+        err = None
+        events = []
+        try:
+            await self._process(req)
+        except Exception as e:
+            err = e
+
+        events.append(
+            dict(
+                event_name='process',
+                spider=req.spider,
+                spent=time() - start_time,
+                exc=err,
+            ))
+
+        await self.emit('events', events=events[:])
+
+        if err is not None:
+            raise err
+
+    async def _process(self, req, events=[]):
         req.engine = self
         req = await self.process_middleware('before_request', req)
 
         rsp = await req.request()
 
+        events.append(
+            dict(
+                event_name='request',
+                spider=req.spider,
+                spent=req.request_time,
+                status=rsp.status,
+                data_bytes=len(rsp.content),
+            ))
+
         rsp.req = req
 
         rsp = await self.process_middleware('after_request', rsp)
 
-        await self.process_response(rsp)
+        await self.process_response(rsp, events)
 
     async def process_middleware(self, name, obj):
         for mid in self.middlewares:
@@ -98,7 +140,7 @@ class Engine(object):
             if new_item is not None:
                 item = new_item
 
-    async def process_response(self, rsp):
+    async def process_response(self, rsp, events=[]):
         spider_name = rsp.req.spider
         callback = rsp.req.callback
         args = list(rsp.req.callback_args)
@@ -106,6 +148,10 @@ class Engine(object):
         func = getattr(spider, callback)
 
         async def process_response_item(item):
+            if len(events) > 100:
+                await self.emit('events', events=events[:])
+                events.clear()
+
             if isinstance(item, BaseRequest):
                 if item.spider is None:
                     item.spider = spider.name
@@ -114,8 +160,20 @@ class Engine(object):
                 item.ref = rsp.url
 
                 await self.push_req(item)
+                events.append(
+                    dict(
+                        event_name='push_req',
+                        spider=spider.name,
+                        count=1,
+                    ))
             elif isinstance(item, Item):
                 await self.push_item(item)
+                events.append(
+                    dict(
+                        event_name='push_item',
+                        spider=spider.name,
+                        count=1,
+                    ))
             elif isinstance(item, list):
                 for sub in item:
                     await process_response_item(sub)
