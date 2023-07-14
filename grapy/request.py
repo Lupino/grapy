@@ -39,8 +39,7 @@ class Request(BaseRequest):
                 rsp_url = urljoin(url, str(rsp.url))
                 logger.info(f'{method.upper()} {url} {status} {ct}')
                 content = await rsp.read()
-                rsp.close()
-                return Response(rsp_url, content, rsp, status, ct)
+                return Response(rsp_url, content, rsp, status, ct, rsp.headers)
 
     def _request(self):
         url = self.url
@@ -58,10 +57,10 @@ class Request(BaseRequest):
         status = rsp.status_code
         logger.info(f'{method.upper()} {url} {status} {ct}')
         rsp_url = urljoin(url, str(rsp.url))
-        return Response(rsp_url, rsp.content, rsp, status, ct)
+        return Response(rsp_url, rsp.content, rsp, status, ct, rsp.headers)
 
     def set_cached(self, content, content_type):
-        self.cached = Response(self.url, content, None, 200, content_type)
+        self.cached = Response(self.url, content, None, 200, content_type, {})
 
     async def request(self):
         '''

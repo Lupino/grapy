@@ -40,7 +40,7 @@ class Response(object):
         'status', 'content_type'
     ]
 
-    def __init__(self, url, content, raw, status, content_type):
+    def __init__(self, url, content, raw, status, content_type, headers={}):
         self.raw = raw
         self.url = url
         self._soup = None
@@ -48,7 +48,7 @@ class Response(object):
         self.encoding = None
         self.content = content
         self.req = None
-        self.headers = {} if raw is None else getattr(raw, 'headers', {})
+        self.headers = headers
         self.status = status
         self.content_type = content_type
 

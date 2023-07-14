@@ -60,9 +60,8 @@ class PlaywrightRequest(BaseRequest):
             await self.custom_action(page)
             content = await page.content()
             logger.info(f'{method.upper()} {self.url} {status} {ct}')
-            return Response(page.url, bytes(content, 'utf-8'), rsp, status, ct)
+            return Response(page.url, bytes(content, 'utf-8'), page, status, ct, rsp.headers)
         finally:
-            await page.close()
             self.request_time = time() - start_time
 
 

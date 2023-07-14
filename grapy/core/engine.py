@@ -107,9 +107,14 @@ class Engine(object):
 
         rsp.req = req
 
-        rsp = await self.process_middleware('after_request', rsp)
-
-        await self.process_response(rsp, events)
+        try:
+            rsp = await self.process_middleware('after_request', rsp)
+            await self.process_response(rsp, events)
+        finally:
+            if rsp.raw and getattr(rsp.raw, 'close'):
+                r = rsp.raw.close()
+                if asyncio.iscoroutine(r):
+                    await r
 
     async def process_middleware(self, name, obj):
         for mid in self.middlewares:
