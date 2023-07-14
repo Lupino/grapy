@@ -73,7 +73,7 @@ class Engine(object):
         err = None
         events = []
         try:
-            await self._process(req)
+            await self._process(req, events)
         except Exception as e:
             err = e
 
