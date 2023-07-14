@@ -27,6 +27,9 @@ class PlaywrightRequest(BaseRequest):
 
         return await browser.new_page()
 
+    async def custom_action(self, page):
+        pass
+
     async def request(self):
         '''
         do request
@@ -54,6 +57,7 @@ class PlaywrightRequest(BaseRequest):
 
         try:
             await page.goto(self.url)
+            await self.custom_action(page)
             content = await page.content()
             logger.info(f'{method.upper()} {self.url} {status} {ct}')
             return Response(page.url, bytes(content, 'utf-8'), rsp, status, ct)
