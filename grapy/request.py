@@ -37,7 +37,8 @@ class Request(BaseRequest):
                 ct = rsp.headers.get('content-type', '')
                 status = rsp.status
                 rsp_url = urljoin(url, str(rsp.url))
-                logger.info(f'{method.upper()} {url} {status} {ct}')
+                spider = self.spider
+                logger.info(f'{method.upper()} {url} {status} {ct} {spider}')
                 content = await rsp.read()
                 return Response(rsp_url, content, rsp, status, ct, rsp.headers)
 
@@ -55,7 +56,7 @@ class Request(BaseRequest):
         rsp = func(url, timeout=int(self.timeout), **kwargs)
         ct = rsp.headers.get('content-type', '')
         status = rsp.status_code
-        logger.info(f'{method.upper()} {url} {status} {ct}')
+        logger.info(f'{method.upper()} {url} {status} {ct} {self.spider}')
         rsp_url = urljoin(url, str(rsp.url))
         return Response(rsp_url, rsp.content, rsp, status, ct, rsp.headers)
 
