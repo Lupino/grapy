@@ -82,7 +82,7 @@ class Engine(object):
                 event_name='process',
                 spider=req.spider,
                 spent=time() - start_time,
-                exc=err,
+                exc=err or 'None',
             ))
 
         await self.emit('events', events=events[:])
@@ -101,7 +101,7 @@ class Engine(object):
                 event_name='request',
                 spider=req.spider,
                 spent=req.request_time,
-                status=rsp.status,
+                status=rsp.status or 600,
                 data_bytes=len(rsp.content),
             ))
 
