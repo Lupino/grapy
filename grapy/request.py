@@ -85,7 +85,8 @@ class Request(BaseRequest):
             logger.error(f"OsConnectionError: {self.url} {e}")
             raise RetryRequest()
         except Exception as exc:
-            logger.error(str(exc) + ': ' + self.url)
+            cls = str(exc.__class__)[8:-2]
+            logger.error(cls + str(exc) + ': ' + self.url)
             start_time = time()
             return await anyio.to_thread.run_sync(self._request)
         finally:
