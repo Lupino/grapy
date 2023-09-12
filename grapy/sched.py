@@ -1,5 +1,5 @@
 from .core import BaseScheduler
-from .core.exceptions import IgnoreRequest, RetryRequest
+from .core.exceptions import IgnoreRequest, RetryRequest, DropItem, ItemError
 from .core.item import load_item
 from asyncio_pool import AioPool
 from .request import Request
@@ -97,7 +97,16 @@ class PeriodicScheduler(BaseScheduler):
 
     async def submit_item(self, job):
         item = load_item(job.workload)
-        await BaseScheduler.submit_item(self, item)
+        try:
+            await BaseScheduler.submit_item(self, item)
+        except DropItem:
+            pass
+        except ItemError:
+            return await job.sched_later(job.payload.count + 10, 1)
+        except Exception as e:
+            logger.exception(e)
+            return await job.sched_later(job.payload.count + 10, 1)
+
         await job.done()
 
     async def init(self,
