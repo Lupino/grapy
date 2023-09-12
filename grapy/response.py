@@ -37,10 +37,17 @@ class Response(object):
 
     __slots__ = [
         'url', 'raw', 'encoding', 'content', '_soup', '_pdf', 'req', 'headers',
-        'status', 'content_type'
+        'status', 'content_type', '_close'
     ]
 
-    def __init__(self, url, content, raw, status, content_type, headers={}):
+    def __init__(self,
+                 url,
+                 content,
+                 raw,
+                 status,
+                 content_type,
+                 headers={},
+                 close=None):
         self.raw = raw
         self.url = url
         self._soup = None
@@ -51,6 +58,7 @@ class Response(object):
         self.headers = headers
         self.status = status
         self.content_type = content_type
+        self._close = close
 
     @property
     def text(self):
@@ -167,3 +175,7 @@ class Response(object):
             content = self.content
             self._pdf = pdfplumber.open(BytesIO(content))
         return self._pdf
+
+    def close(self):
+        if self._close is not None:
+            return self._close()

@@ -9,8 +9,7 @@ packages = [
 ]
 
 requires = [
-    'asyncio', 'aiohttp', 'beautifulsoup4', 'requests', 'asyncio-pool',
-    'bloom-filter2'
+    'asyncio', 'beautifulsoup4', 'asyncio-pool', 'bloom-filter2', 'httpx[socks]'
 ]
 
 setup(

@@ -1,9 +1,7 @@
-import aiohttp
+import httpx
 from urllib.parse import urljoin
 from .response import Response
 from .core import BaseRequest
-from .core.exceptions import RetryRequest
-import requests
 from time import time
 import logging
 import anyio
@@ -18,47 +16,41 @@ class Request(BaseRequest):
     the Request object
     '''
 
-    async def _aio_request(self):
+    def _prepare_client(self, cls):
+        transport = getattr(self, 'transport', None)
+        proxies = getattr(self, 'proxy', None)
+        timeout = int(self.timeout)
+        return cls(transport=transport, timeout=timeout, proxies=proxies)
+
+    def _prepare_request(self, client):
         method = self.method.lower()
         kwargs = self.kwargs.copy()
-
-        connector = getattr(self, 'connector', None)
-
-        proxy = getattr(self, 'proxy', None)
-        if proxy:
-            kwargs['proxy'] = proxy
-
         url = self.url
+        return client.request(method, url, **kwargs)
 
-        timeout = aiohttp.ClientTimeout(total=int(self.timeout))
-        async with aiohttp.ClientSession(connector=connector,
-                                         timeout=timeout) as client:
-            async with client.request(method, url, **kwargs) as rsp:
-                ct = rsp.headers.get('content-type', '')
-                status = rsp.status
-                rsp_url = urljoin(url, str(rsp.url))
-                spider = self.spider
-                logger.info(f'{method.upper()} {url} {status} {ct} {spider}')
-                content = await rsp.read()
-                return Response(rsp_url, content, rsp, status, ct, rsp.headers)
-
-    def _request(self):
-        url = self.url
+    def _parse_response(self, rsp):
         method = self.method.lower()
-        kwargs = self.kwargs.copy()
-        proxy = getattr(self, 'proxy', None)
-        if proxy:
-            kwargs['proxies'] = {
-                'http': proxy,
-                'https': proxy,
-            }
-        func = getattr(requests, method)
-        rsp = func(url, timeout=int(self.timeout), **kwargs)
+        url = self.url
+
         ct = rsp.headers.get('content-type', '')
         status = rsp.status_code
-        logger.info(f'{method.upper()} {url} {status} {ct} {self.spider}')
         rsp_url = urljoin(url, str(rsp.url))
-        return Response(rsp_url, rsp.content, rsp, status, ct, rsp.headers)
+        spider = self.spider
+        logger.info(f'{method.upper()} {url} {status} {ct} {spider}')
+        content = rsp.content
+        return Response(rsp_url, content, rsp, status, ct, rsp.headers)
+
+    async def _async_request(self):
+        self.sync = False
+        async with self._prepare_client(httpx.AsyncClient) as client:
+            rsp = await self._prepare_request(client)
+            return self._parse_response(rsp)
+
+    def _request(self):
+        self.sync = True
+        with self._prepare_client(httpx.Client) as client:
+            rsp = self._prepare_request(client)
+            return self._parse_response(rsp)
 
     def set_cached(self, content, content_type):
         self.cached = Response(self.url, content, None, 200, content_type, {})
@@ -80,10 +72,7 @@ class Request(BaseRequest):
             if self.sync:
                 return await anyio.to_thread.run_sync(self._request)
 
-            return await self._aio_request()
-        except aiohttp.client_exceptions.ClientError as e:
-            logger.error(f"OsConnectionError: {self.url} {e}")
-            raise RetryRequest()
+            return await self._async_request()
         except Exception as exc:
             cls = str(exc.__class__)[8:-2]
             logger.error(cls + str(exc) + ': ' + self.url)
